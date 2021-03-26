@@ -354,7 +354,7 @@ class SnakeGame:
             self.closing_game_dialog()
         pygame.quit()
 
-    def ai_game_loop(self, iterations):
+    def if_game_loop(self, iterations):
         for i in range(iterations):
             self.set_display()
             self.reset_snake()
@@ -368,6 +368,37 @@ class SnakeGame:
                 self.check_obstacles()
                 self.navigate_snake_bool_logic()
                 # self.navigate_snake_regression()
+                self.move_snake()
+                self.gather_data()
+                self.update_snake_position()
+                self.check_if_snake_inside()
+                self.draw_snake_food()
+                self.snake_eats_food()
+                self.clock.tick(self.snake_speed)
+
+            self.scores.append(self.score)
+        pygame.quit()
+
+        return self.scores, self.move_coding
+
+    def drbm_game_loop(self, iterations, drbm):
+        for i in range(iterations):
+            self.set_display()
+            self.reset_snake()
+            self.get_x_y_food()
+            self.score = 0
+            self.game_over = False
+            while not self.game_over:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.game_over = True
+                self.check_obstacles()
+                self.get_food_vector()
+                self.food_coding()
+                # self.navigate_snake_regression()
+                self.moves.fill(0)
+                prediction = drbm.predict(np.hstack([self.obstacles, self.food]))
+                self.moves[np.argmax(prediction)] = 1
                 self.move_snake()
                 self.gather_data()
                 self.update_snake_position()
