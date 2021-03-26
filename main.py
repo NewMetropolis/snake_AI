@@ -2,7 +2,6 @@ import math
 import numpy as np
 from scipy.special import expit
 
-print('Does it work as I think it does?')
 
 class RBM:
     # Restricted Boltzman Machine (RBM) with d visible and m hidden units connected edges with weight matrix W.
