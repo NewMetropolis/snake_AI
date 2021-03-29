@@ -2,6 +2,7 @@ import math
 import numpy as np
 import pygame
 import random
+import sys
 
 
 class SnakeGame:
@@ -11,8 +12,18 @@ class SnakeGame:
 
         self.display_width = display_width
         self.display_height = display_height
+        # This has to be changed.
         self.top_bar_height = font_size
         self.snake_block = snake_block
+        # Grid dimensions.
+        self.n_rows = (self.display_height - self.top_bar_height) / self.snake_block
+        self.n_cols = self.display_width / self.snake_block
+        if self.n_rows % 1 != 0. or self.n_cols % 1 != 0.:
+            sys.exit('Game board dimensions must by a multiple of a Snake block size.')
+        self.n_rows = int(self.n_rows)
+        self.n_cols = int(self.n_cols)
+        # Grid.
+        self.grid = np.full([self.n_rows, self.n_cols], 1, dtype=int)
         self.snake_speed = snake_speed
         self.coloring_scheme = coloring_scheme
         pygame.font.init()
@@ -35,7 +46,10 @@ class SnakeGame:
         self.game_over = False
         self.closing_game = False
         self.snake = [[0, 0]]
-        self.head = [self.display_width / 2, (self.display_height + self.top_bar_height) / 2]
+        # Middle row and column index.
+        r_middle = self.n_rows / 2 - 1 if self.n_rows % 2 == 0 else self.n_rows // 2
+        c_middle = self.n_cols / 2 - 1 if self.n_cols % 2 == 0 else self.n_cols // 2
+        self.head = [r_middle, c_middle]
         self.x_head_change = self.y_head_change = self.x_food = self.y_food = 0
         self.length = 1
         self.score = 0
@@ -59,7 +73,7 @@ class SnakeGame:
         self.food_vector = np.empty(2)
         self.ai_mode = ai_mode
         if self.ai_mode:
-            self.move_coding = []
+            self.step_coding = []
             self.scores = []
 
     # Function determines possible directions order for a snake, once given a vector pointing to food.
@@ -379,7 +393,7 @@ class SnakeGame:
             self.scores.append(self.score)
         pygame.quit()
 
-        return self.scores, self.move_coding
+        return self.scores, self.step_coding
 
     def drbm_game_loop(self, iterations, drbm):
         for i in range(iterations):
@@ -410,7 +424,7 @@ class SnakeGame:
             self.scores.append(self.score)
         pygame.quit()
 
-        return self.scores, self.move_coding
+        return self.scores, self.step_coding
 
     def random_game_loop(self, iterations):
         for i in range(iterations):
@@ -434,4 +448,4 @@ class SnakeGame:
             self.scores[i] = self.score
         pygame.quit()
 
-        return self.scores, self.move_coding
+        return self.scores, self.step_coding

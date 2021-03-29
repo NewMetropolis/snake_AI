@@ -4,6 +4,61 @@ import rbm
 import numpy as np
 
 
+def bfs_on_grid(grid, start, end):
+    """Breadth First Search on a grid. Returns a minimal number of steps between start and end points."""
+    # Number of rows.
+    n_rows = grid.shape[0]
+    # Number of columns.
+    n_columns = grid.shape[1]
+    # A queue for holding a row index.
+    r_queue = [start[0]]
+    # A queue for holding a column index.
+    c_queue = [start[1]]
+    # Allowed row index changes/moves.
+    r_moves = [0, -1, 0, 1]
+    # Allowed column index changes/moves.
+    c_moves = [1, 0, -1, 0]
+    # This will track a route.
+    previous_node = np.full(n_rows * n_columns, -1, dtype=int)
+
+    while len(r_queue) > 0:
+        # Current row index.
+        r = r_queue.pop()
+        # Current column index.
+        c = c_queue.pop()
+        node_index = r * n_columns + c
+        # Mark as visited/now unreachable.
+        grid[r, c] = 0
+        # Explore all possible moves.
+        for ith_direction in range(4):
+            r_change = r_moves[ith_direction]
+            c_change = c_moves[ith_direction]
+            new_r = r + r_change
+            new_c = c + c_change
+            new_node_index = new_r * n_columns + new_c
+            # Still on a grid?
+            if new_r < 0 or new_c < 0:
+                continue
+            if new_r >= n_rows or new_c >= n_columns:
+                continue
+            # Any obstacles (marked as 0s)?
+            if grid[new_r, new_c] == 0:
+                continue
+            # Keep track of a route.
+            previous_node[new_node_index] = node_index
+            # Have we already reached an end?
+            if new_r == end[0] and new_c == end[1]:
+                return previous_node
+            # Add to a queue.
+            r_queue.append(new_r)
+            c_queue.append(new_c)
+
+    return previous_node
+
+grid = np.array([[1, 1, 1], [0, 1, 1], [1, 1, 1], [0, 0, 1]])
+route = bfs_on_grid(grid, (0, 0), (3, 2))
+print('Hi')
+
 def add_noise(sequence, noise, repeat):
     # Function adds noise to a binary sequence of an arbitrary length.
     n_bits = len(sequence)
@@ -18,6 +73,8 @@ def add_noise(sequence, noise, repeat):
         sequence_list.append(pert_sequence)
 
     return sequence_list
+
+
 
 #
 # output_list = []
@@ -47,7 +104,8 @@ def add_noise(sequence, noise, repeat):
 #     output_arr = np.array(output_list, dtype=int)
 #     return np.mean(output_arr, axis=0)
 
-
+with open('DRBM_weights_biases.pkl', 'rb') as pkl_file:
+    weights, weights_c_h, bias_v, bias_h, bias_c = pickle.load(pkl_file)
 # test()
 # print(average_output(output_list))
 #
@@ -65,13 +123,11 @@ def add_noise(sequence, noise, repeat):
 # print(rbm_sgd.test(snake_coding))
 # with open('DRBM_weights_biases.pkl', 'wb') as pkl_file:
 #     pickle.dump((rbm_sgd.weights, rbm_sgd.weights_c_h, rbm_sgd.bias_v, rbm_sgd.bias_h, rbm_sgd.bias_c), pkl_file)
-with open('DRBM_weights_biases.pkl', 'rb') as pkl_file:
-    weights, weights_c_h, bias_v, bias_h, bias_c = pickle.load(pkl_file)
 print('HI')
 
 # Running snake game.
 
-snake_ai_game = snake.SnakeGame(ai_mode=True, snake_speed=2)
+snake_ai_game = snake.SnakeGame(ai_mode=True, snake_speed=200)
 rbm_sgd = rbm.RBM(8, 4, alpha=0.1, classifier=True, k=4)
 rbm_sgd.weights = weights
 rbm_sgd.weights_c_h = weights_c_h
