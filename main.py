@@ -125,16 +125,18 @@ with open('DRBM_weights_biases.pkl', 'rb') as pkl_file:
 #     pickle.dump((rbm_sgd.weights, rbm_sgd.weights_c_h, rbm_sgd.bias_v, rbm_sgd.bias_h, rbm_sgd.bias_c), pkl_file)
 print('HI')
 
+snake_game = snake.SnakeGame(snake_speed=5)
+snake_game.game_loop()
 # Running snake game.
-
-snake_ai_game = snake.SnakeGame(ai_mode=True, snake_speed=200)
-rbm_sgd = rbm.RBM(8, 4, alpha=0.1, classifier=True, k=4)
-rbm_sgd.weights = weights
-rbm_sgd.weights_c_h = weights_c_h
-rbm_sgd.bias_v = bias_v
-rbm_sgd.bias_h = bias_h
-rbm_sgd.bias_c = bias_c
-scores, move_coding = snake_ai_game.drbm_game_loop(iterations=3, drbm = rbm_sgd)
+#
+# snake_ai_game = snake.SnakeGame(ai_mode=True, snake_speed=200)
+# rbm_sgd = rbm.RBM(8, 4, alpha=0.1, classifier=True, k=4)
+# rbm_sgd.weights = weights
+# rbm_sgd.weights_c_h = weights_c_h
+# rbm_sgd.bias_v = bias_v
+# rbm_sgd.bias_h = bias_h
+# rbm_sgd.bias_c = bias_c
+# scores, move_coding = snake_ai_game.drbm_game_loop(iterations=3, drbm = rbm_sgd)
 # snake_game = SnakeGame()
 # snake_game.game_loop()
 

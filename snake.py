@@ -1,4 +1,3 @@
-from colour import Color
 import math
 import numpy as np
 import pygame
@@ -8,8 +7,8 @@ import sys
 
 class SnakeGame:
 
-    def __init__(self, display_width=600, display_height=440, snake_block=20, snake_speed=5,
-                 ai_mode=False, theme='default'):
+    def __init__(self, display_width=600, display_height=440, snake_block=20, snake_speed=5, ai_mode=False,
+                 theme='default'):
 
         # Graphics settings.
         self.display_width = display_width
@@ -38,20 +37,15 @@ class SnakeGame:
         self.n_cols = int(self.n_cols)
         # Grid.
         self.grid = np.full([self.n_rows, self.n_cols], 1, dtype=int)
-        # The Snake itself. In variables below 'ri' stands for 'row index' and 'ci' for 'column index'.
-        self.ci_snake = []
-        self.ri_snake = []
-        self.ci_head = None
-        self.ri_head = None
+        # The Snake itself.
+        self.snake = [np.empty(2, dtype=int)]
+        self.snake_head = np.empty(2, dtype=int)
         self.snake_length = 1
-        self.ci_move = None
-        self.ri_move = None
-        self.ci_food = None
-        self.ri_food = None
+        self.move = np.empty(2, dtype=int)
+        self.food = np.empty(2, dtype=int)
         self.snake_speed = snake_speed
         # Possible moves for a Snake.
-        self.ci_changes = [1, 0, -1, 0]
-        self.ri_changes = [0, -1, 0, 1]
+        self.directions = np.array(list(zip([1, 0, -1, 0], [0, -1, 0, 1])), dtype=int)
         # Obstacles, food and moves coding.
         self.obstacles_coding = np.zeros(4, dtype=int)
         self.food_coding = np.zeros(4, dtype=int)
@@ -71,34 +65,31 @@ class SnakeGame:
             self.scores = []
 
     def reset_snake(self):
-        self.ci_snake = []
-        self.ri_snake = []
+        self.snake = [[]]
         # Position Snake at the middle of a board.
         c_middle = self.n_cols / 2 - 1 if self.n_cols % 2 == 0 else self.n_cols // 2
         r_middle = self.n_rows / 2 - 1 if self.n_rows % 2 == 0 else self.n_rows // 2
-        self.ci_head = c_middle
-        self.ri_head = r_middle
-        self.ci_move = 0
-        self.ri_move = 0
+        self.snake_head[:] = [c_middle, r_middle]
+        self.move.fill(0)
         self.snake_length = 1
+        self.score = 0
 
-    def get_ci_ri_food(self):
+    def get_food(self):
         collides_snake = True
         while collides_snake:
-            self.ci_food = random.randrange(0, self.n_cols)
-            self.ri_food = random.randrange(0, self.n_rows)
+            self.food[0] = random.randrange(0, self.n_cols)
+            self.food[1] = random.randrange(0, self.n_rows)
 
             collides_snake = False
-            for segment in range(self.snake_length):
-                if self.ci_snake[segment] == self.ci_food and self.ri_snake[segment] == self.ri_food:
+            for segment in self.snake:
+                if np.all(segment == self.food):
                     collides_snake = True
         return
 
     def directions_order(self):
         distances = np.empty(4)
         for direction in range(4):
-            distances = np.linalg.norm([self.ci_food[direction] - self.ci_snake[direction], self.ri_food[direction] -
-                                        self.ri_snake[direction]])
+            distances = np.linalg.norm(self.food - self.directions[direction, :])
         order = np.argsort(distances)
 
         self.food_coding.fill(0)
@@ -109,14 +100,13 @@ class SnakeGame:
     def check_obstacles(self):
         self.obstacles_coding.fill(0)
         for direction in range(4):
-            new_ci = self.ci_head + self.ci_changes[direction]
-            new_ri = self.ri_head + self.ri_changes[direction]
-            if new_ci < 0 or new_ci >= self.n_cols:
+            new_position = self.snake_head + self.directions[direction, :]
+            if new_position[0] < 0 or new_position[0] >= self.n_cols:
                 self.obstacles_coding[direction] = 1
-            if new_ri < 0 or new_ri >= self.n_rows:
+            if new_position[1] < 0 or new_position[1] >= self.n_rows:
                 self.obstacles_coding[direction] = 1
-            for segment in range(self.snake_length):
-                if self.ci_snake[segment] == new_ci and self.ri_snake[segment] == new_ri:
+            for segment in self.snake:
+                if np.all(segment == new_position):
                     self.obstacles_coding[direction] = 1
 
         if self.obstacles_coding.sum() == 4:
@@ -126,7 +116,7 @@ class SnakeGame:
         self.move_coding.fill(0)
         for direction in self.directions_order():
             if self.obstacles_coding[direction] == 0:
-                self.move_coding = 1
+                self.move_coding[direction] = 1
 
                 return
 
@@ -145,8 +135,7 @@ class SnakeGame:
 
     def move_snake(self):
         move_direction = np.argwhere(self.move_coding == 1)
-        self.ci_move = self.ci_changes[move_direction]
-        self.ri_move = self.ri_changes[move_direction]
+        self.move = self.directions[move_direction, :]
 
         return
 
@@ -169,54 +158,58 @@ class SnakeGame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.game_over = True
-            if event.key == pygame.K_RIGHT:
-                self.ci_move = 1
-                self.ri_move = 0
-            elif event.key == pygame.K_LEFT:
-                self.ci_move = -1
-                self.ri_move = 0
-            elif event.key == pygame.K_UP:
-                self.ci_move = 0
-                self.ri_move = -1
-            elif event.key == pygame.K_DOWN:
-                self.ci_move = 0
-                self.ri_move = 1
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    self.move = np.array([1, 0])
+                elif event.key == pygame.K_LEFT:
+                    self.move = np.array([-1, 0])
+                elif event.key == pygame.K_UP:
+                    self.move = np.array([0, -1])
+                elif event.key == pygame.K_DOWN:
+                    self.move = np.array([0, 1])
 
-    def get_random_control_events(self):
-        # For simplification we discard a backward move as only valid for a snake of a length 1.
-        self.move_coding.fill(0)
-        possible_moves = [0, 1, 2, 3]
-        random_move = random.choice(possible_moves)
-        self.move_coding[random_move] = 1
-
-        return
+    # def get_random_control_events(self):
+    #     # For simplification we discard a backward move as only valid for a snake of a length 1.
+    #     self.move_coding.fill(0)
+    #     possible_moves = [0, 1, 2, 3]
+    #     random_move = random.choice(possible_moves)
+    #     self.move_coding[random_move] = 1
+    #
+    #     return
 
     def update_snake_position(self):
         if self.snake_length > 1:
-            self.ci_snake[1:] = self.ci_snake[:-1]
-            self.ri_snake[1:] = self.ri_snake[:-1]
-        self.ci_head += self.ci_move
-        self.ri_head += self.ri_move
-        self.ci_snake = self.ci_head
-        self.ri_snake = self.ri_head
+            self.snake[1:] = self.snake[:-1]
+        self.snake_head = self.snake_head + self.move
+        self.snake[0] = self.snake_head
 
-    def check_if_snake_inside(self):
+    def check_if_crashed(self):
         crash = False
-        if self.ci_head < 0 or self.ci_head >= self.n_cols:
+        if self.snake_head[0] < 0 or self.snake_head[0] >= self.n_cols:
             crash = True
-        if self.ri_head < 0 or self.ri_head >= self.n_rows:
+        if self.snake_head[1] < 0 or self.snake_head[1] >= self.n_rows:
             crash = True
 
+        if self.snake_length > 1:
+            for segment in self.snake:
+                if np.all(segment == self.snake_head):
+                    crash = True
+                    break
         if crash:
             if self.ai_mode:
                 self.game_over = True
 
-                return
-
             else:
                 self.closing_game = True
 
-                return
+        return
+
+    def snake_eats_food(self):
+        if np.all(self.snake_head == self.food):
+            self.snake_length += 1
+            self.snake.append(np.zeros(2, dtype=int))
+            self.get_food()
+            self.score += 10
 
     def closing_game_dialog(self):
         while self.closing_game:
@@ -239,31 +232,17 @@ class SnakeGame:
         pygame.draw.line(self.display, self.line_color, [0, self.top_bar_height - 1], [self.display_width,
                                                                                        self.top_bar_height - 1])
         for count, segment in enumerate(self.snake):
+            x_snake = segment[0] * self.snake_block
+            y_snake = self.top_bar_height + segment[1] * self.snake_block
             pygame.draw.rect(self.display, self.snake_color,
-                             [segment[0], segment[1], self.snake_block,
+                             [x_snake, y_snake, self.snake_block,
                               self.snake_block])
-            if count > 0:
-                if segment[0] == self.snake[0][0] and segment[1] == self.snake[0][1]:
-                    if self.ai_mode:
-                        self.game_over = True
 
-                        return
-
-                    else:
-                        self.closing_game = True
-
-                        return
-
-        pygame.draw.rect(self.display, self.food_color, [self.x_food, self.y_food, self.snake_block, self.snake_block])
+        x_food = self.food[0] * self.snake_block
+        y_food = self.top_bar_height + self.food[1] * self.snake_block
+        pygame.draw.rect(self.display, self.food_color, [x_food, y_food, self.snake_block, self.snake_block])
         self.display_score()
         pygame.display.update()
-
-    def snake_eats_food(self):
-        if self.snake[0][0] == self.x_food and self.snake[0][1] == self.y_food:
-            self.length += 1
-            self.snake.append([0, 0])
-            self.get_x_y_food()
-            self.score += 10
 
     # def gather_data(self):
     #     self.food_coding()
@@ -272,12 +251,11 @@ class SnakeGame:
     def game_loop(self):
         self.set_display()
         self.reset_snake()
-        self.get_x_y_food()
-        self.score = 0
+        self.get_food()
         while not self.game_over:
             self.get_control_events()
             self.update_snake_position()
-            self.check_if_snake_inside()
+            self.check_if_crashed()
             self.draw_snake_food()
             self.snake_eats_food()
             self.clock.tick(self.snake_speed)
@@ -288,8 +266,7 @@ class SnakeGame:
         for i in range(iterations):
             self.set_display()
             self.reset_snake()
-            self.get_x_y_food()
-            self.score = 0
+            self.get_food()
             self.game_over = False
             while not self.game_over:
                 for event in pygame.event.get():
@@ -299,9 +276,9 @@ class SnakeGame:
                 self.navigate_snake_bool_logic()
                 # self.navigate_snake_regression()
                 self.move_snake()
-                self.gather_data()
+                # self.gather_data()
                 self.update_snake_position()
-                self.check_if_snake_inside()
+                self.check_if_crashed()
                 self.draw_snake_food()
                 self.snake_eats_food()
                 self.clock.tick(self.snake_speed)
@@ -310,58 +287,58 @@ class SnakeGame:
         pygame.quit()
 
         return self.scores, self.step_coding
-
-    def drbm_game_loop(self, iterations, drbm):
-        for i in range(iterations):
-            self.set_display()
-            self.reset_snake()
-            self.get_x_y_food()
-            self.score = 0
-            self.game_over = False
-            while not self.game_over:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        self.game_over = True
-                self.check_obstacles()
-                self.get_food_vector()
-                self.food_coding()
-                # self.navigate_snake_regression()
-                self.moves.fill(0)
-                prediction = drbm.predict(np.hstack([self.obstacles, self.food]))
-                self.moves[np.argmax(prediction)] = 1
-                self.move_snake()
-                self.gather_data()
-                self.update_snake_position()
-                self.check_if_snake_inside()
-                self.draw_snake_food()
-                self.snake_eats_food()
-                self.clock.tick(self.snake_speed)
-
-            self.scores.append(self.score)
-        pygame.quit()
-
-        return self.scores, self.step_coding
-
-    def random_game_loop(self, iterations):
-        for i in range(iterations):
-            self.set_display()
-            self.reset_snake()
-            self.get_x_y_food()
-            self.score = 0
-            self.game_over = False
-            while not self.game_over:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        self.game_over = True
-                self.get_random_control_events()
-                self.move_snake()
-                self.update_snake_position()
-                self.check_if_snake_inside()
-                self.draw_snake_food()
-                self.snake_eats_food()
-                self.clock.tick(self.snake_speed)
-
-            self.scores[i] = self.score
-        pygame.quit()
-
-        return self.scores, self.step_coding
+    #
+    # def drbm_game_loop(self, iterations, drbm):
+    #     for i in range(iterations):
+    #         self.set_display()
+    #         self.reset_snake()
+    #         self.get_food()
+    #         self.score = 0
+    #         self.game_over = False
+    #         while not self.game_over:
+    #             for event in pygame.event.get():
+    #                 if event.type == pygame.QUIT:
+    #                     self.game_over = True
+    #             self.check_obstacles()
+    #             # self.get_food_vector()
+    #             self.food_coding()
+    #             # self.navigate_snake_regression()
+    #             self.moves.fill(0)
+    #             prediction = drbm.predict(np.hstack([self.obstacles, self.food]))
+    #             self.moves[np.argmax(prediction)] = 1
+    #             self.move_snake()
+    #             self.gather_data()
+    #             self.update_snake_position()
+    #             self.check_if_snake_inside()
+    #             self.draw_snake_food()
+    #             self.snake_eats_food()
+    #             self.clock.tick(self.snake_speed)
+    #
+    #         self.scores.append(self.score)
+    #     pygame.quit()
+    #
+    #     return self.scores, self.step_coding
+    #
+    # def random_game_loop(self, iterations):
+    #     for i in range(iterations):
+    #         self.set_display()
+    #         self.reset_snake()
+    #         self.get_x_y_food()
+    #         self.score = 0
+    #         self.game_over = False
+    #         while not self.game_over:
+    #             for event in pygame.event.get():
+    #                 if event.type == pygame.QUIT:
+    #                     self.game_over = True
+    #             self.get_random_control_events()
+    #             self.move_snake()
+    #             self.update_snake_position()
+    #             self.check_if_snake_inside()
+    #             self.draw_snake_food()
+    #             self.snake_eats_food()
+    #             self.clock.tick(self.snake_speed)
+    #
+    #         self.scores[i] = self.score
+    #     pygame.quit()
+    #
+    #     return self.scores, self.step_coding
