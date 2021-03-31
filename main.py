@@ -125,8 +125,8 @@ with open('DRBM_weights_biases.pkl', 'rb') as pkl_file:
 #     pickle.dump((rbm_sgd.weights, rbm_sgd.weights_c_h, rbm_sgd.bias_v, rbm_sgd.bias_h, rbm_sgd.bias_c), pkl_file)
 print('HI')
 
-snake_game = snake.SnakeGame(snake_speed=5)
-snake_game.game_loop()
+snake_game = snake.SnakeGame(snake_speed=50, ai_mode='if_statement')
+snake_game.if_game_loop(1)
 # Running snake game.
 #
 # snake_ai_game = snake.SnakeGame(ai_mode=True, snake_speed=200)

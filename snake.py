@@ -14,9 +14,8 @@ class SnakeGame:
         self.display_width = display_width
         self.display_height = display_height
         self.snake_block = snake_block
-        self.theme = theme
         self.display = None
-        # Initialize fonts.
+        self.theme = theme
         pygame.font.init()
         if self.theme == 'default':
             self.background_color = pygame.Color("white")
@@ -37,7 +36,7 @@ class SnakeGame:
         self.n_cols = int(self.n_cols)
         # Grid.
         self.grid = np.full([self.n_rows, self.n_cols], 1, dtype=int)
-        # The Snake itself.
+        # Snake itself.
         self.snake = [np.empty(2, dtype=int)]
         self.snake_head = np.empty(2, dtype=int)
         self.snake_length = 1
@@ -50,9 +49,10 @@ class SnakeGame:
         self.obstacles_coding = np.zeros(4, dtype=int)
         self.food_coding = np.zeros(4, dtype=int)
         self.move_coding = np.zeros(4, dtype=int)
-        # This will store all three together. I use here four objects instead of one for a clarity reasons.
+        # This will store all three together. I use here four objects instead of just one for clarity reasons.
         self.step_coding = []
         # For controlling a game loop.
+        # 'Game over' does not mean and of fun. One can always try again.
         self.game_over = False
         self.closing_game = False
         self.clock = pygame.time.Clock()
@@ -63,98 +63,37 @@ class SnakeGame:
         if self.ai_mode:
             self.steps_coding = []
             self.scores = []
-
-    def reset_snake(self):
-        self.snake = [[]]
-        # Position Snake at the middle of a board.
-        c_middle = self.n_cols / 2 - 1 if self.n_cols % 2 == 0 else self.n_cols // 2
-        r_middle = self.n_rows / 2 - 1 if self.n_rows % 2 == 0 else self.n_rows // 2
-        self.snake_head[:] = [c_middle, r_middle]
-        self.move.fill(0)
-        self.snake_length = 1
-        self.score = 0
-
-    def get_food(self):
-        collides_snake = True
-        while collides_snake:
-            self.food[0] = random.randrange(0, self.n_cols)
-            self.food[1] = random.randrange(0, self.n_rows)
-
-            collides_snake = False
-            for segment in self.snake:
-                if np.all(segment == self.food):
-                    collides_snake = True
-        return
-
-    def directions_order(self):
-        distances = np.empty(4)
-        for direction in range(4):
-            distances = np.linalg.norm(self.food - self.directions[direction, :])
-        order = np.argsort(distances)
-
-        self.food_coding.fill(0)
-        self.food_coding[np.argmin(distances)] = 1
-
-        return order
-
-    def check_obstacles(self):
-        self.obstacles_coding.fill(0)
-        for direction in range(4):
-            new_position = self.snake_head + self.directions[direction, :]
-            if new_position[0] < 0 or new_position[0] >= self.n_cols:
-                self.obstacles_coding[direction] = 1
-            if new_position[1] < 0 or new_position[1] >= self.n_rows:
-                self.obstacles_coding[direction] = 1
-            for segment in self.snake:
-                if np.all(segment == new_position):
-                    self.obstacles_coding[direction] = 1
-
-        if self.obstacles_coding.sum() == 4:
-            print('Shit: {}'.format(self.score))
-
-    def navigate_snake_bool_logic(self):
-        self.move_coding.fill(0)
-        for direction in self.directions_order():
-            if self.obstacles_coding[direction] == 0:
-                self.move_coding[direction] = 1
-
-                return
-
-    # def navigate_snake_regression(self):
-    #     self.moves.fill(0)
-    #     self.get_food_vector()
-    #     y = np.empty(4, dtype=int)
-    # 
-    #     for i in range(4):
-    #         y[i] = (1 - 2 * self.obstacles[i]) * math.pi - math.acos(
-    #             np.dot(self.food_vector, self.all_directions_vec[i]))
-    # 
-    #     self.moves[np.argmax(y)] = 1
-    # 
-    #     return
-
-    def move_snake(self):
-        move_direction = np.argwhere(self.move_coding == 1)
-        self.move = self.directions[move_direction, :]
+            if self.ai_mode == 'if_statement':
+                self.ordered_directions = np.empty(4, dtype=int)
 
         return
 
-    def set_display(self):
+    def set_game_board(self):
+        # Initialize the game bord
         pygame.display.init()
         self.display = pygame.display.set_mode((self.display_width, self.display_height))
         pygame.display.set_caption('Atak dzikich wenszy.')
 
+        return
+
     def display_centered_text(self, text, offset=0):
+        # Display game board centered text.
         text_rendered = self.font_style.render(text, True, self.message_color, self.background_color)
         text_rect = text_rendered.get_rect(center=(self.display_width / 2, self.display_height / 2 + offset))
         self.display.blit(text_rendered, text_rect)
 
+        return
+
     def display_score(self):
+        # Display score.
         message_rendered = self.font_style.render("Score: {}".format(self.score), True, self.message_color,
                                                   self.background_color)
         self.display.blit(message_rendered, [0, 0])
 
+        return
+
     def get_control_events(self):
+        # Capture keyboard events.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.game_over = True
@@ -167,6 +106,96 @@ class SnakeGame:
                     self.move = np.array([0, -1])
                 elif event.key == pygame.K_DOWN:
                     self.move = np.array([0, 1])
+ 
+    def reset_snake(self):
+        # After the game is over reset snake before the next turn.
+        self.snake = [[]]
+        # Position Snake in the middle of a board.
+        c_middle = self.n_cols / 2 - 1 if self.n_cols % 2 == 0 else self.n_cols // 2
+        r_middle = self.n_rows / 2 - 1 if self.n_rows % 2 == 0 else self.n_rows // 2
+        self.snake_head[:] = [c_middle, r_middle]
+        self.move.fill(0)
+        self.snake_length = 1
+        self.score = 0
+
+        return
+
+    def place_food(self):
+        # Place food randomly on a game board.
+        collides_snake = True
+        while collides_snake:
+            self.food[0] = random.randrange(0, self.n_cols)
+            self.food[1] = random.randrange(0, self.n_rows)
+            collides_snake = False
+            for segment in self.snake:
+                if np.all(segment == self.food):
+                    collides_snake = True
+
+        return
+
+    def directions_order(self):
+        # Order possible move directions based on a distance to food.
+        distances = np.empty(4)
+        for direction in range(4):
+            # Could be optimized better. There is already such a loop.
+            new_position = self.snake_head + self.directions[direction, :]
+            distances[direction] = np.linalg.norm(self.food - new_position)
+        self.ordered_directions = np.argsort(distances)
+        self.food_coding.fill(0)
+        self.food_coding[np.argmin(distances)] = 1
+
+        return
+
+    def check_obstacles(self):
+        # Check obstacles around Snake's head.
+        self.obstacles_coding.fill(0)
+        for direction in range(4):
+            new_position = self.snake_head + self.directions[direction, :]
+            if new_position[0] < 0 or new_position[0] >= self.n_cols:
+                self.obstacles_coding[direction] = 1
+            if new_position[1] < 0 or new_position[1] >= self.n_rows:
+                self.obstacles_coding[direction] = 1
+            for segment in self.snake:
+                if np.all(segment == new_position):
+                    self.obstacles_coding[direction] = 1
+
+        if self.obstacles_coding.sum() == 4:
+            print('We are xxxxxx!')
+            self.game_over = True
+
+        return
+
+    def navigate_snake_bool_logic(self):
+        # Once obstacles and directions order have been determined navigate Snake.
+        self.move_coding.fill(0)
+        for direction in self.ordered_directions:
+            if self.obstacles_coding[direction] == 0:
+                self.move_coding[direction] = 1
+
+                return
+
+    # def navigate_snake_regression(self):
+    #     self.moves.fill(0)
+    #     self.place_food_vector()
+    #     y = np.empty(4, dtype=int)
+    #
+    #     for i in range(4):
+    #         y[i] = (1 - 2 * self.obstacles[i]) * math.pi - math.acos(
+    #             np.dot(self.food_vector, self.all_directions_vec[i]))
+    #
+    #     self.moves[np.argmax(y)] = 1
+    #
+    #     return
+
+    def set_move_value(self):
+        # Set move value(row index, column index change) based on a current move_coding.
+        try:
+            move_direction = np.argwhere(self.move_coding == 1).item()
+            self.move = self.directions[move_direction, :]
+        except ValueError:
+            print('The final score is: {}.'.format(self.score))
+
+        return
 
     # def get_random_control_events(self):
     #     # For simplification we discard a backward move as only valid for a snake of a length 1.
@@ -178,12 +207,16 @@ class SnakeGame:
     #     return
 
     def update_snake_position(self):
+        # Update snake coordinates based on a current move.
         if self.snake_length > 1:
             self.snake[1:] = self.snake[:-1]
         self.snake_head = self.snake_head + self.move
         self.snake[0] = self.snake_head
 
+        return
+
     def check_if_crashed(self):
+        # Check it Snake crashed.
         crash = False
         if self.snake_head[0] < 0 or self.snake_head[0] >= self.n_cols:
             crash = True
@@ -191,25 +224,45 @@ class SnakeGame:
             crash = True
 
         if self.snake_length > 1:
-            for segment in self.snake:
-                if np.all(segment == self.snake_head):
+            for segment in range(1, self.snake_length):
+                if np.all(self.snake[segment] == self.snake_head):
                     crash = True
                     break
         if crash:
             if self.ai_mode:
                 self.game_over = True
-
             else:
                 self.closing_game = True
 
         return
 
     def snake_eats_food(self):
+        # If Snake catches food, make it one segment longer.
         if np.all(self.snake_head == self.food):
             self.snake_length += 1
             self.snake.append(np.zeros(2, dtype=int))
-            self.get_food()
+            self.place_food()
             self.score += 10
+
+    def draw_snake_food(self):
+        # Draw Snake and food on a game board.
+        self.display.fill(self.background_color)
+        pygame.draw.line(self.display, self.line_color, [0, self.top_bar_height - 1], [self.display_width,
+                                                                                       self.top_bar_height - 1])
+        for count, segment in enumerate(self.snake):
+            x_snake = segment[0] * self.snake_block
+            y_snake = self.top_bar_height + segment[1] * self.snake_block
+            pygame.draw.rect(self.display, self.snake_color,
+                             [x_snake, y_snake, self.snake_block,
+                              self.snake_block])
+
+        x_food = self.food[0] * self.snake_block
+        y_food = self.top_bar_height + self.food[1] * self.snake_block
+        pygame.draw.rect(self.display, self.food_color, [x_food, y_food, self.snake_block, self.snake_block])
+        self.display_score()
+        pygame.display.update()
+
+        return
 
     def closing_game_dialog(self):
         while self.closing_game:
@@ -227,31 +280,14 @@ class SnakeGame:
                         self.closing_game = False
                         self.game_loop()
 
-    def draw_snake_food(self):
-        self.display.fill(self.background_color)
-        pygame.draw.line(self.display, self.line_color, [0, self.top_bar_height - 1], [self.display_width,
-                                                                                       self.top_bar_height - 1])
-        for count, segment in enumerate(self.snake):
-            x_snake = segment[0] * self.snake_block
-            y_snake = self.top_bar_height + segment[1] * self.snake_block
-            pygame.draw.rect(self.display, self.snake_color,
-                             [x_snake, y_snake, self.snake_block,
-                              self.snake_block])
-
-        x_food = self.food[0] * self.snake_block
-        y_food = self.top_bar_height + self.food[1] * self.snake_block
-        pygame.draw.rect(self.display, self.food_color, [x_food, y_food, self.snake_block, self.snake_block])
-        self.display_score()
-        pygame.display.update()
-
     # def gather_data(self):
     #     self.food_coding()
     #     self.coding.append(list(self.obstacles) + list(self.moves) + list(self.food))
 
     def game_loop(self):
-        self.set_display()
+        self.set_game_board()
         self.reset_snake()
-        self.get_food()
+        self.place_food()
         while not self.game_over:
             self.get_control_events()
             self.update_snake_position()
@@ -262,20 +298,23 @@ class SnakeGame:
             self.closing_game_dialog()
         pygame.quit()
 
+        return
+
     def if_game_loop(self, iterations):
         for i in range(iterations):
-            self.set_display()
-            self.reset_snake()
-            self.get_food()
             self.game_over = False
+            self.set_game_board()
+            self.reset_snake()
+            self.place_food()
             while not self.game_over:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.game_over = True
                 self.check_obstacles()
+                self.directions_order()
                 self.navigate_snake_bool_logic()
                 # self.navigate_snake_regression()
-                self.move_snake()
+                self.set_move_value()
                 # self.gather_data()
                 self.update_snake_position()
                 self.check_if_crashed()
@@ -290,9 +329,9 @@ class SnakeGame:
     #
     # def drbm_game_loop(self, iterations, drbm):
     #     for i in range(iterations):
-    #         self.set_display()
+    #         self.set_game_board()
     #         self.reset_snake()
-    #         self.get_food()
+    #         self.place_food()
     #         self.score = 0
     #         self.game_over = False
     #         while not self.game_over:
@@ -300,13 +339,13 @@ class SnakeGame:
     #                 if event.type == pygame.QUIT:
     #                     self.game_over = True
     #             self.check_obstacles()
-    #             # self.get_food_vector()
+    #             # self.place_food_vector()
     #             self.food_coding()
     #             # self.navigate_snake_regression()
     #             self.moves.fill(0)
     #             prediction = drbm.predict(np.hstack([self.obstacles, self.food]))
     #             self.moves[np.argmax(prediction)] = 1
-    #             self.move_snake()
+    #             self.set_move_value()
     #             self.gather_data()
     #             self.update_snake_position()
     #             self.check_if_snake_inside()
@@ -321,7 +360,7 @@ class SnakeGame:
     #
     # def random_game_loop(self, iterations):
     #     for i in range(iterations):
-    #         self.set_display()
+    #         self.set_game_board()
     #         self.reset_snake()
     #         self.get_x_y_food()
     #         self.score = 0
@@ -331,7 +370,7 @@ class SnakeGame:
     #                 if event.type == pygame.QUIT:
     #                     self.game_over = True
     #             self.get_random_control_events()
-    #             self.move_snake()
+    #             self.set_move_value()
     #             self.update_snake_position()
     #             self.check_if_snake_inside()
     #             self.draw_snake_food()
