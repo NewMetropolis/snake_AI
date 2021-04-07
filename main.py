@@ -20,7 +20,6 @@ def bfs_on_grid(grid, start, end, snake=[]):
     c_moves = [1, 0, -1, 0]
     # This will keep track a route.
     previous_node = np.full(n_rows * n_columns, -1, dtype=int)
-    #
     # For counting number of steps.
     nodes_left_in_layer = 1
     nodes_in_next_layer = 0
@@ -71,19 +70,32 @@ def bfs_on_grid(grid, start, end, snake=[]):
     return previous_node
 
 
-def reconstruct_path(end, previous_node):
+def reconstruct_path(grid, start, end, previous_node):
+    # Number of rows.
+    n_rows = grid.shape[0]
+    # Number of columns.
+    n_columns = grid.shape[1]
     # (Re)construct a path given a 'previous node' list from 'bfs_on_grid' function.
+    start = n_columns * start[0] + start[1]
+    end = n_columns * end[0] + end[1]
     node = end
     path_ = []
-    while node != 0:
-        path_.append(node)
+    while node != start:
+        row_idx = node // n_columns
+        col_idx = node % n_columns
+        path_.append(np.array([row_idx, col_idx]))
         node = previous_node[node]
+    path_.reverse()
 
     return path_
 
 grid = np.array([[1, 1, 1], [0, 1, 1], [1, 1, 1], [0, 0, 1]])
-route = bfs_on_grid(grid, (0, 0), (3, 2))
-print(route)
+previous_node = bfs_on_grid(grid, (0, 0), (3, 2))
+path_ = reconstruct_path(grid, (0, 0), (3, 2), previous_node)
+# print(previous_node)
+print(previous_node)
+print(path_)
+print(path_)
 
 def add_noise(sequence, noise, repeat):
     # Function adds noise to a binary sequence of an arbitrary length.
@@ -129,9 +141,9 @@ def add_noise(sequence, noise, repeat):
 # def average_output(output_list):
 #     output_arr = np.array(output_list, dtype=int)
 #     return np.mean(output_arr, axis=0)
-
-with open('DRBM_weights_biases.pkl', 'rb') as pkl_file:
-    weights, weights_c_h, bias_v, bias_h, bias_c = pickle.load(pkl_file)
+#
+# with open('DRBM_weights_biases.pkl', 'rb') as pkl_file:
+#     weights, weights_c_h, bias_v, bias_h, bias_c = pickle.load(pkl_file)
 # test()
 # print(average_output(output_list))
 #
@@ -150,9 +162,10 @@ with open('DRBM_weights_biases.pkl', 'rb') as pkl_file:
 # with open('DRBM_weights_biases.pkl', 'wb') as pkl_file:
 #     pickle.dump((rbm_sgd.weights, rbm_sgd.weights_c_h, rbm_sgd.bias_v, rbm_sgd.bias_h, rbm_sgd.bias_c), pkl_file)
 print('HI')
+#
+# snake_game = snake.SnakeGame(snake_speed=50, ai_mode='if_statement')
 
-snake_game = snake.SnakeGame(snake_speed=50, ai_mode='if_statement')
-snake_game.if_game_loop(1)
+# snake_game.if_game_loop(1)
 # Running snake game.
 #
 # snake_ai_game = snake.SnakeGame(ai_mode=True, snake_speed=200)
