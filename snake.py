@@ -187,6 +187,15 @@ class SnakeGame:
     #
     #     return
 
+    def update_grid(self):
+        # Update grid by marking places where Snake and food are with zeros.
+        for segment in self.snake:
+            self.grid[tuple(segment)] = 0
+
+        self.grid[tuple(self.food)] = 0
+
+        return
+
     def set_move_value(self):
         # Set move value(row index, column index change) based on a current move_coding.
         try:

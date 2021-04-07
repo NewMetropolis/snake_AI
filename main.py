@@ -4,7 +4,7 @@ import rbm
 import numpy as np
 
 
-def bfs_on_grid(grid, start, end):
+def bfs_on_grid(grid, start, end, snake=[]):
     """Breadth First Search on a grid. Returns a minimal number of steps between start and end points."""
     # Number of rows.
     n_rows = grid.shape[0]
@@ -18,9 +18,13 @@ def bfs_on_grid(grid, start, end):
     r_moves = [0, -1, 0, 1]
     # Allowed column index changes/moves.
     c_moves = [1, 0, -1, 0]
-    # This will track a route.
+    # This will keep track a route.
     previous_node = np.full(n_rows * n_columns, -1, dtype=int)
-
+    #
+    # For counting number of steps.
+    nodes_left_in_layer = 1
+    nodes_in_next_layer = 0
+    move_count = 0
     while len(r_queue) > 0:
         # Current row index.
         r = r_queue.pop()
@@ -52,12 +56,34 @@ def bfs_on_grid(grid, start, end):
             # Add to a queue.
             r_queue.append(new_r)
             c_queue.append(new_c)
-
+            # Keep track of how many nodes are to be visited in next layer.
+            nodes_in_next_layer += 1
+        nodes_left_in_layer -= 1
+        # Did we exit a current layer yet?
+        if nodes_left_in_layer == 0:
+            nodes_left_in_layer = nodes_in_next_layer
+            nodes_in_next_layer = 0
+            move_count += 1
+            # If so, a place where the Snake's tail previously was is now empty.
+            if len(snake) > 0:
+                index_to_empty = tuple(snake.pop())
+                grid[index_to_empty] = 1
     return previous_node
+
+
+def reconstruct_path(end, previous_node):
+    # (Re)construct a path given a 'previous node' list from 'bfs_on_grid' function.
+    node = end
+    path_ = []
+    while node != 0:
+        path_.append(node)
+        node = previous_node[node]
+
+    return path_
 
 grid = np.array([[1, 1, 1], [0, 1, 1], [1, 1, 1], [0, 0, 1]])
 route = bfs_on_grid(grid, (0, 0), (3, 2))
-print('Hi')
+print(route)
 
 def add_noise(sequence, noise, repeat):
     # Function adds noise to a binary sequence of an arbitrary length.
