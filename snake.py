@@ -1,15 +1,15 @@
+import bfs
+import sys
 import math
 import numpy as np
 import pygame
 import random
-import sys
 
 
 class SnakeGame:
-
+    """Implementation of a classic '00s Snake game."""
     def __init__(self, display_width=600, display_height=440, snake_block=20, snake_speed=5, ai_mode=False,
                  theme='default'):
-
         # Graphics settings.
         self.display_width = display_width
         self.display_height = display_height
@@ -20,16 +20,17 @@ class SnakeGame:
         if self.theme == 'default':
             self.background_color = pygame.Color("white")
             self.snake_color = pygame.Color("blue")
+            self.snake_head_color = pygame.Color("red")
             self.food_color = pygame.Color("green")
             self.message_color = pygame.Color("black")
             self.line_color = pygame.Color("black")
             self.font_size = 30
             self.font_style = pygame.font.SysFont('arial', self.font_size)
         # A top bar to display a current score.
-        self.top_bar_height = math.ceil(self.font_size / self.snake_block) * self.snake_block
+        self.top_bar_height = math.ceil(self.font_size / snake_block) * snake_block
         # Grid settings.
-        self.n_rows = (self.display_height - self.top_bar_height) / self.snake_block
-        self.n_cols = self.display_width / self.snake_block
+        self.n_rows = (display_height - self.top_bar_height) / snake_block
+        self.n_cols = display_width / snake_block
         if self.n_rows % 1 != 0. or self.n_cols % 1 != 0.:
             sys.exit('Game board dimensions must by a multiple of a Snake block size.')
         self.n_rows = int(self.n_rows)
@@ -44,7 +45,7 @@ class SnakeGame:
         self.food = np.empty(2, dtype=int)
         self.snake_speed = snake_speed
         # Possible moves for a Snake.
-        self.directions = np.array(list(zip([1, 0, -1, 0], [0, -1, 0, 1])), dtype=int)
+        self.directions = np.array(list(zip([0, -1, 0, 1], [1, 0, -1, 0])), dtype=int)
         # Obstacles, food and moves coding.
         self.obstacles_coding = np.zeros(4, dtype=int)
         self.food_coding = np.zeros(4, dtype=int)
@@ -52,7 +53,7 @@ class SnakeGame:
         # This will store all three together. I use here four objects instead of just one for clarity reasons.
         self.step_coding = []
         # For controlling a game loop.
-        # 'Game over' does not mean and of fun. One can always try again.
+        # 'Game over' does not mean end of the fun. One can always try again.
         self.game_over = False
         self.closing_game = False
         self.clock = pygame.time.Clock()
@@ -69,7 +70,7 @@ class SnakeGame:
         return
 
     def set_game_board(self):
-        # Initialize the game bord
+        # Initialize a game board.
         pygame.display.init()
         self.display = pygame.display.set_mode((self.display_width, self.display_height))
         pygame.display.set_caption('Atak dzikich wenszy.')
@@ -77,7 +78,7 @@ class SnakeGame:
         return
 
     def display_centered_text(self, text, offset=0):
-        # Display game board centered text.
+        # Display centered text.
         text_rendered = self.font_style.render(text, True, self.message_color, self.background_color)
         text_rect = text_rendered.get_rect(center=(self.display_width / 2, self.display_height / 2 + offset))
         self.display.blit(text_rendered, text_rect)
@@ -99,21 +100,21 @@ class SnakeGame:
                 self.game_over = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
-                    self.move = np.array([1, 0])
-                elif event.key == pygame.K_LEFT:
-                    self.move = np.array([-1, 0])
-                elif event.key == pygame.K_UP:
-                    self.move = np.array([0, -1])
-                elif event.key == pygame.K_DOWN:
                     self.move = np.array([0, 1])
+                elif event.key == pygame.K_LEFT:
+                    self.move = np.array([0, -1])
+                elif event.key == pygame.K_UP:
+                    self.move = np.array([-1, 0])
+                elif event.key == pygame.K_DOWN:
+                    self.move = np.array([1, 0])
  
     def reset_snake(self):
         # After the game is over reset snake before the next turn.
-        self.snake = [[]]
+        self.snake = [np.empty(2, dtype=int)]
         # Position Snake in the middle of a board.
-        c_middle = self.n_cols / 2 - 1 if self.n_cols % 2 == 0 else self.n_cols // 2
         r_middle = self.n_rows / 2 - 1 if self.n_rows % 2 == 0 else self.n_rows // 2
-        self.snake_head[:] = [c_middle, r_middle]
+        c_middle = self.n_cols / 2 - 1 if self.n_cols % 2 == 0 else self.n_cols // 2
+        self.snake_head[:] = [r_middle, c_middle]
         self.move.fill(0)
         self.snake_length = 1
         self.score = 0
@@ -124,8 +125,8 @@ class SnakeGame:
         # Place food randomly on a game board.
         collides_snake = True
         while collides_snake:
-            self.food[0] = random.randrange(0, self.n_cols)
-            self.food[1] = random.randrange(0, self.n_rows)
+            self.food[0] = random.randrange(0, self.n_rows)
+            self.food[1] = random.randrange(0, self.n_cols)
             collides_snake = False
             for segment in self.snake:
                 if np.all(segment == self.food):
@@ -147,13 +148,13 @@ class SnakeGame:
         return
 
     def check_obstacles(self):
-        # Check obstacles around Snake's head.
+        # Check obstacles around the Snake's head.
         self.obstacles_coding.fill(0)
         for direction in range(4):
             new_position = self.snake_head + self.directions[direction, :]
-            if new_position[0] < 0 or new_position[0] >= self.n_cols:
+            if new_position[0] < 0 or new_position[0] >= self.n_rows:
                 self.obstacles_coding[direction] = 1
-            if new_position[1] < 0 or new_position[1] >= self.n_rows:
+            if new_position[1] < 0 or new_position[1] >= self.n_cols:
                 self.obstacles_coding[direction] = 1
             for segment in self.snake:
                 if np.all(segment == new_position):
@@ -166,7 +167,7 @@ class SnakeGame:
         return
 
     def navigate_snake_bool_logic(self):
-        # Once obstacles and directions order have been determined navigate Snake.
+        # Once obstacles and directions order have been established navigate the Snake.
         self.move_coding.fill(0)
         for direction in self.ordered_directions:
             if self.obstacles_coding[direction] == 0:
@@ -188,11 +189,11 @@ class SnakeGame:
     #     return
 
     def update_grid(self):
-        # Update grid by marking places where Snake and food are with zeros.
+        # Reset.
+        self.grid.fill(1)
+        # Update grid by marking places where the Snake is with zeros.
         for segment in self.snake:
             self.grid[tuple(segment)] = 0
-
-        self.grid[tuple(self.food)] = 0
 
         return
 
@@ -200,7 +201,7 @@ class SnakeGame:
         # Set move value(row index, column index change) based on a current move_coding.
         try:
             move_direction = np.argwhere(self.move_coding == 1).item()
-            self.move = self.directions[move_direction, :]
+            self.move = self.directions[move_direction, :].copy()
         except ValueError:
             print('The final score is: {}.'.format(self.score))
 
@@ -227,9 +228,9 @@ class SnakeGame:
     def check_if_crashed(self):
         # Check it Snake crashed.
         crash = False
-        if self.snake_head[0] < 0 or self.snake_head[0] >= self.n_cols:
+        if self.snake_head[0] < 0 or self.snake_head[0] >= self.n_rows:
             crash = True
-        if self.snake_head[1] < 0 or self.snake_head[1] >= self.n_rows:
+        if self.snake_head[1] < 0 or self.snake_head[1] >= self.n_cols:
             crash = True
 
         if self.snake_length > 1:
@@ -259,14 +260,20 @@ class SnakeGame:
         pygame.draw.line(self.display, self.line_color, [0, self.top_bar_height - 1], [self.display_width,
                                                                                        self.top_bar_height - 1])
         for count, segment in enumerate(self.snake):
-            x_snake = segment[0] * self.snake_block
-            y_snake = self.top_bar_height + segment[1] * self.snake_block
-            pygame.draw.rect(self.display, self.snake_color,
-                             [x_snake, y_snake, self.snake_block,
-                              self.snake_block])
+            # Counterintuitive. Yet we are on a grid([row_id, col_id]).
+            y_snake = self.top_bar_height + segment[0] * self.snake_block
+            x_snake = segment[1] * self.snake_block
+            if count == 0:
+                pygame.draw.rect(self.display, self.snake_head_color,
+                                 [x_snake, y_snake, self.snake_block,
+                                  self.snake_block])
+            else:
+                pygame.draw.rect(self.display, self.snake_color,
+                                 [x_snake, y_snake, self.snake_block,
+                                  self.snake_block])
 
-        x_food = self.food[0] * self.snake_block
-        y_food = self.top_bar_height + self.food[1] * self.snake_block
+        x_food = self.food[1] * self.snake_block
+        y_food = self.top_bar_height + self.food[0] * self.snake_block
         pygame.draw.rect(self.display, self.food_color, [x_food, y_food, self.snake_block, self.snake_block])
         self.display_score()
         pygame.display.update()
@@ -274,6 +281,7 @@ class SnakeGame:
         return
 
     def closing_game_dialog(self):
+        # After the Snake crashes offer to start again.
         while self.closing_game:
             self.display.fill(self.background_color)
             self.display_centered_text('You have lost!')
@@ -288,6 +296,8 @@ class SnakeGame:
                         pygame.display.quit()
                         self.closing_game = False
                         self.game_loop()
+
+        return
 
     # def gather_data(self):
     #     self.food_coding()
@@ -334,8 +344,37 @@ class SnakeGame:
             self.scores.append(self.score)
         pygame.quit()
 
-        return self.scores, self.step_coding
-    #
+        return
+
+    def bfs_game_loop(self, iterations):
+        for i in range(iterations):
+            self.game_over = False
+            self.set_game_board()
+            self.reset_snake()
+            self.place_food()
+            while not self.game_over:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.game_over = True
+                self.update_snake_position()
+                self.update_grid()
+                bfs_on_grid = bfs.BreadthFirstSearch(self.grid, self.snake[0].copy(), self.food.copy(), self.snake.copy())
+                bfs_on_grid.serch()
+                bfs_on_grid.reconstruct_track()
+                n_moves = len(bfs_on_grid.track)
+                for ith_move in range(n_moves):
+                    self.update_snake_position()
+                    self.move = bfs_on_grid.track[ith_move] - self.snake[0]
+                    self.update_snake_position()
+                    self.check_if_crashed()
+                    self.draw_snake_food()
+                    self.snake_eats_food()
+                    self.clock.tick(self.snake_speed)
+            self.scores.append(self.score)
+        pygame.quit()
+
+        return
+#
     # def drbm_game_loop(self, iterations, drbm):
     #     for i in range(iterations):
     #         self.set_game_board()

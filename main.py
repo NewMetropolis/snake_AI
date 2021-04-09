@@ -1,101 +1,19 @@
-import pickle
-import snake
-import rbm
+# import rbm
 import numpy as np
+import snake
 
 
-def bfs_on_grid(grid, start, end, snake=[]):
-    """Breadth First Search on a grid. Returns a minimal number of steps between start and end points."""
-    # Number of rows.
-    n_rows = grid.shape[0]
-    # Number of columns.
-    n_columns = grid.shape[1]
-    # A queue for holding a row index.
-    r_queue = [start[0]]
-    # A queue for holding a column index.
-    c_queue = [start[1]]
-    # Allowed row index changes/moves.
-    r_moves = [0, -1, 0, 1]
-    # Allowed column index changes/moves.
-    c_moves = [1, 0, -1, 0]
-    # This will keep track a route.
-    previous_node = np.full(n_rows * n_columns, -1, dtype=int)
-    # For counting number of steps.
-    nodes_left_in_layer = 1
-    nodes_in_next_layer = 0
-    move_count = 0
-    while len(r_queue) > 0:
-        # Current row index.
-        r = r_queue.pop()
-        # Current column index.
-        c = c_queue.pop()
-        node_index = r * n_columns + c
-        # Mark as visited/now unreachable.
-        grid[r, c] = 0
-        # Explore all possible moves.
-        for ith_direction in range(4):
-            r_change = r_moves[ith_direction]
-            c_change = c_moves[ith_direction]
-            new_r = r + r_change
-            new_c = c + c_change
-            new_node_index = new_r * n_columns + new_c
-            # Still on a grid?
-            if new_r < 0 or new_c < 0:
-                continue
-            if new_r >= n_rows or new_c >= n_columns:
-                continue
-            # Any obstacles (marked as 0s)?
-            if grid[new_r, new_c] == 0:
-                continue
-            # Keep track of a route.
-            previous_node[new_node_index] = node_index
-            # Have we already reached an end?
-            if new_r == end[0] and new_c == end[1]:
-                return previous_node
-            # Add to a queue.
-            r_queue.append(new_r)
-            c_queue.append(new_c)
-            # Keep track of how many nodes are to be visited in next layer.
-            nodes_in_next_layer += 1
-        nodes_left_in_layer -= 1
-        # Did we exit a current layer yet?
-        if nodes_left_in_layer == 0:
-            nodes_left_in_layer = nodes_in_next_layer
-            nodes_in_next_layer = 0
-            move_count += 1
-            # If so, a place where the Snake's tail previously was is now empty.
-            if len(snake) > 0:
-                index_to_empty = tuple(snake.pop())
-                grid[index_to_empty] = 1
-    return previous_node
+snake_game = snake.SnakeGame(snake_speed=50, ai_mode='bfs')
+snake_game.if_game_loop(3)
+# snake_game.bfs_game_loop(1)
+# Running snake game.
 
+# a_grid = np.array([[1, 1, 1], [0, 1, 1], [1, 1, 1], [0, 0, 1]])
+# bfs = BreadthFirstSearch(a_grid, (0, 0), (3, 2))
+# bfs.serch()
+# bfs.reconstruct_track()
+# print(bfs.track)
 
-def reconstruct_path(grid, start, end, previous_node):
-    # Number of rows.
-    n_rows = grid.shape[0]
-    # Number of columns.
-    n_columns = grid.shape[1]
-    # (Re)construct a path given a 'previous node' list from 'bfs_on_grid' function.
-    start = n_columns * start[0] + start[1]
-    end = n_columns * end[0] + end[1]
-    node = end
-    path_ = []
-    while node != start:
-        row_idx = node // n_columns
-        col_idx = node % n_columns
-        path_.append(np.array([row_idx, col_idx]))
-        node = previous_node[node]
-    path_.reverse()
-
-    return path_
-
-grid = np.array([[1, 1, 1], [0, 1, 1], [1, 1, 1], [0, 0, 1]])
-previous_node = bfs_on_grid(grid, (0, 0), (3, 2))
-path_ = reconstruct_path(grid, (0, 0), (3, 2), previous_node)
-# print(previous_node)
-print(previous_node)
-print(path_)
-print(path_)
 
 def add_noise(sequence, noise, repeat):
     # Function adds noise to a binary sequence of an arbitrary length.
@@ -111,7 +29,6 @@ def add_noise(sequence, noise, repeat):
         sequence_list.append(pert_sequence)
 
     return sequence_list
-
 
 
 #
@@ -163,10 +80,6 @@ def add_noise(sequence, noise, repeat):
 #     pickle.dump((rbm_sgd.weights, rbm_sgd.weights_c_h, rbm_sgd.bias_v, rbm_sgd.bias_h, rbm_sgd.bias_c), pkl_file)
 print('HI')
 #
-# snake_game = snake.SnakeGame(snake_speed=50, ai_mode='if_statement')
-
-# snake_game.if_game_loop(1)
-# Running snake game.
 #
 # snake_ai_game = snake.SnakeGame(ai_mode=True, snake_speed=200)
 # rbm_sgd = rbm.RBM(8, 4, alpha=0.1, classifier=True, k=4)
