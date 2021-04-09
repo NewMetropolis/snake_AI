@@ -1,18 +1,21 @@
 # import rbm
+import bfs
 import numpy as np
 import snake
 
 
-snake_game = snake.SnakeGame(snake_speed=50, ai_mode='bfs')
-snake_game.if_game_loop(3)
+snake_game = snake.SnakeGame(display_width=400, display_height=340, snake_speed=20, ai_mode='bfs')
+snake_game.bfs_game_loop(3)
 # snake_game.bfs_game_loop(1)
 # Running snake game.
 
-# a_grid = np.array([[1, 1, 1], [0, 1, 1], [1, 1, 1], [0, 0, 1]])
-# bfs = BreadthFirstSearch(a_grid, (0, 0), (3, 2))
-# bfs.serch()
-# bfs.reconstruct_track()
-# print(bfs.track)
+# a_grid = np.full([5, 5], 1)
+# start = (2, 2)
+# end = (2, 4)
+# bfs_on_grid = bfs.BreadthFirstSearch(a_grid, start, end)
+# bfs_on_grid.search()
+# bfs_on_grid.reconstruct_track()
+# print(bfs_on_grid.track)
 
 
 def add_noise(sequence, noise, repeat):

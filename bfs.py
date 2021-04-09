@@ -25,7 +25,7 @@ class BreadthFirstSearch:
 
         return
 
-    def serch(self):
+    def search(self):
         # A queue for holding a row index.
         r_queue = [self.start[0]]
         # A queue for holding a column index.
@@ -36,9 +36,9 @@ class BreadthFirstSearch:
         move_count = 0
         while len(r_queue) > 0:
             # Current row index.
-            r = r_queue.pop()
+            r = r_queue.pop(0)
             # Current column index.
-            c = c_queue.pop()
+            c = c_queue.pop(0)
             node_index = r * self.n_columns + c
             # Mark as visited/now unreachable.
             self.grid[r, c] = 0
@@ -87,6 +87,11 @@ class BreadthFirstSearch:
         start = n_columns * self.start[0] + self.start[1]
         end = n_columns * self.end[0] + self.end[1]
         node = end
+        if self.previous_node[node] == -1:
+            print('No valid path.')
+
+            return
+
         while node != start:
             row_idx = node // n_columns
             col_idx = node % n_columns
@@ -94,4 +99,5 @@ class BreadthFirstSearch:
             node = self.previous_node[node]
         self.track.reverse()
 
-        return
+        return 1
+    

@@ -352,18 +352,24 @@ class SnakeGame:
             self.set_game_board()
             self.reset_snake()
             self.place_food()
+            self.update_snake_position()
             while not self.game_over:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.game_over = True
-                self.update_snake_position()
                 self.update_grid()
-                bfs_on_grid = bfs.BreadthFirstSearch(self.grid, self.snake[0].copy(), self.food.copy(), self.snake.copy())
-                bfs_on_grid.serch()
-                bfs_on_grid.reconstruct_track()
+                print('Calculating optimal route.')
+                bfs_on_grid = bfs.BreadthFirstSearch(self.grid, self.snake_head.copy(), self.food.copy(),
+                                                     self.snake.copy())
+                bfs_on_grid.search()
+                track_exists = bfs_on_grid.reconstruct_track()
+                if not track_exists:
+                    self.game_over = True
+                    continue
                 n_moves = len(bfs_on_grid.track)
+                print(n_moves)
                 for ith_move in range(n_moves):
-                    self.update_snake_position()
+                    print('Executing moves.')
                     self.move = bfs_on_grid.track[ith_move] - self.snake[0]
                     self.update_snake_position()
                     self.check_if_crashed()
