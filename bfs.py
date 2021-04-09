@@ -75,7 +75,7 @@ class BreadthFirstSearch:
                 move_count += 1
                 if self.snake:
                     # Place where the Snake's tail previously was is now empty.
-                    if len(self.snake) > 0:
+                    if len(self.snake) > 0 and move_count > 1:
                         index_to_empty = tuple(self.snake.pop())
                         self.grid[index_to_empty] = 1
 

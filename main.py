@@ -1,10 +1,14 @@
 # import rbm
 import bfs
 import numpy as np
+import pickle
 import snake
 
 
-snake_game = snake.SnakeGame(display_width=400, display_height=340, snake_speed=20, ai_mode='bfs')
+# snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=50, ai_mode='if_statement')
+bsf_on_a_grid = pickle.load(open('bsf.pkl', 'rb'))
+bsf_on_a_grid.search()
+snake_game = snake.SnakeGame(display_width=600, display_height=440, snake_speed=50, ai_mode='bfs')
 snake_game.bfs_game_loop(3)
 # snake_game.bfs_game_loop(1)
 # Running snake game.

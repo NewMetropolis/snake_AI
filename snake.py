@@ -193,7 +193,8 @@ class SnakeGame:
         self.grid.fill(1)
         # Update grid by marking places where the Snake is with zeros.
         for segment in self.snake:
-            self.grid[tuple(segment)] = 0
+            if segment.sum() != -2:
+                self.grid[tuple(segment)] = 0
 
         return
 
@@ -250,7 +251,7 @@ class SnakeGame:
         # If Snake catches food, make it one segment longer.
         if np.all(self.snake_head == self.food):
             self.snake_length += 1
-            self.snake.append(np.zeros(2, dtype=int))
+            self.snake.append(np.full(2, -1, dtype=int))
             self.place_food()
             self.score += 10
 
@@ -358,18 +359,20 @@ class SnakeGame:
                     if event.type == pygame.QUIT:
                         self.game_over = True
                 self.update_grid()
+                if self.snake_length == 1:
+                    snake_ = self.snake
+                else:
+                    snake_ = self.snake[:-1]
                 print('Calculating optimal route.')
-                bfs_on_grid = bfs.BreadthFirstSearch(self.grid, self.snake_head.copy(), self.food.copy(),
-                                                     self.snake.copy())
+                bfs_on_grid = bfs.BreadthFirstSearch(self.grid, self.snake_head.copy(), self.food.copy(), snake_.copy())
                 bfs_on_grid.search()
                 track_exists = bfs_on_grid.reconstruct_track()
                 if not track_exists:
                     self.game_over = True
                     continue
                 n_moves = len(bfs_on_grid.track)
-                print(n_moves)
+                print("Number of moves: {}".format(n_moves))
                 for ith_move in range(n_moves):
-                    print('Executing moves.')
                     self.move = bfs_on_grid.track[ith_move] - self.snake[0]
                     self.update_snake_position()
                     self.check_if_crashed()
