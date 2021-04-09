@@ -30,6 +30,8 @@ class BreadthFirstSearch:
         r_queue = [self.start[0]]
         # A queue for holding a column index.
         c_queue = [self.start[1]]
+        # Avoid duplicates in a queue.
+        enqueued = [0] * self.grid.size
         # For counting number of steps.
         nodes_left_in_layer = 1
         nodes_in_next_layer = 0
@@ -62,9 +64,12 @@ class BreadthFirstSearch:
                 # Have we already reached an end?
                 if new_r == self.end[0] and new_c == self.end[1]:
                     return self.previous_node
+                if enqueued[new_node_index] == 1:
+                    continue
                 # Add to a queue.
                 r_queue.append(new_r)
                 c_queue.append(new_c)
+                enqueued[new_node_index] = 1
                 # Keep track of how many nodes are to be visited in next layer.
                 nodes_in_next_layer += 1
             nodes_left_in_layer -= 1
