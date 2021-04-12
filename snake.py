@@ -4,10 +4,9 @@ import math
 import numpy as np
 import pygame
 import random
-
+"""Implementation of a classic '00s Snake game."""
 
 class SnakeGame:
-    """Implementation of a classic '00s Snake game."""
     def __init__(self, display_width=600, display_height=440, snake_block=20, snake_speed=5, ai_mode=False,
                  theme='default'):
         # Graphics settings.

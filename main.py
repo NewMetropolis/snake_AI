@@ -24,6 +24,13 @@ snake_game.bfs_game_loop(20)
 
 
 def add_noise(sequence, noise, repeat):
+    """
+
+    :param sequence:
+    :param noise:
+    :param repeat:
+    :return:
+    """
     # Function adds noise to a binary sequence of an arbitrary length.
     n_bits = len(sequence)
     n_perturbed = int(n_bits * noise)
