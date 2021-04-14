@@ -382,7 +382,131 @@ class SnakeGame:
         pygame.quit()
 
         return
-#
+
+    def ultimate_domination_loop(self):
+        """Run Snake in a 'dumb yet unbeatable mode'."""
+        self.game_over = False
+        self.set_game_board()
+        self.reset_snake()
+        self.place_food()
+        # snakes_head = self.snake_head
+        last_col = self.n_cols - 1
+        last_row = self.n_rows - 1
+        n_traversals = (last_col - 1) // 2
+
+        if self.n_cols % 2 == 0:
+            even_n_cols = True
+        else:
+            even_n_cols = False
+        if self.n_rows % 2 == 0:
+            even_n_rows = True
+        else:
+            even_n_rows = False
+
+        if not even_n_cols and not even_n_rows:
+            row_stop = 2
+            even_iteration = True
+        else:
+            row_stop = 1
+
+        def game_step():
+            self.update_snake_position()
+            self.check_if_crashed()
+            self.draw_snake_food()
+            self.snake_eats_food()
+            self.clock.tick(self.snake_speed)
+
+        def zigzag_up():
+            self.move = np.array([-1, 0], dtype=int)
+            game_step()
+            self.move = np.array([0, -1], dtype=int)
+            game_step()
+            self.move = np.array([-1, 0], dtype=int)
+            game_step()
+            self.move = np.array([0, 1], dtype=int)
+            game_step()
+
+        def zigzag_left():
+            self.move = np.array([-1, 0], dtype=int)
+            game_step()
+            self.move = np.array([0, -1], dtype=int)
+            game_step()
+            self.move = np.array([1, 0], dtype=int)
+            game_step()
+            self.move = np.array([0, -1], dtype=int)
+            game_step()
+
+        def climb_down():
+            while self.snake_head[0] < last_row:
+                self.move = np.array([1, 0], dtype=int)
+                game_step()
+
+        def climb_up(stop):
+            while self.snake_head[0] > stop:
+                self.move = np.array([-1, 0], dtype=int)
+                game_step()
+
+        def move_right():
+            self.move = np.array([0, 1], dtype=int)
+            game_step()
+
+        def move_left():
+            self.move = np.array([0, -1], dtype=int)
+            game_step()
+
+        def move_down():
+            self.move = np.array([1, 0], dtype=int)
+            game_step()
+
+        def move_up():
+            self.move = np.array([-1, 0], dtype=int)
+            game_step()
+
+        # def turn_left():
+        #     self.move = np.array([0, -1], dtype=int)
+        #     game_step()
+
+        # Implement more efficient food placement?
+        while not self.game_over:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.game_over = True
+            while self.snake_head[1] > 0:
+                move_left()
+            climb_down()
+            move_right()
+            for i in range(n_traversals):
+                climb_up(row_stop)
+                move_right()
+                climb_down()
+                move_right()
+            if even_n_cols:
+                climb_up(0)
+            else:
+                move_right()
+                while self.snake_head[0] > row_stop:
+                    zigzag_up()
+                move_up()
+                if not even_n_rows:
+                    while self.snake_head[1] > 2:
+                        zigzag_left()
+                    move_up()
+                    move_left()
+                    if not even_iteration:
+                        move_down()
+                    even_iteration = not even_iteration
+            # if odd_n_cols:
+            #     while snakes_head[0]
+        # self.scores.append(self.score)
+        pygame.quit()
+
+        return
+
+
+
+
+
+
     # def drbm_game_loop(self, iterations, drbm):
     #     for i in range(iterations):
     #         self.set_game_board()

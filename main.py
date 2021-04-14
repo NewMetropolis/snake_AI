@@ -9,8 +9,8 @@ import snake
 # bsf_on_a_grid = pickle.load(open('bsf.pkl', 'rb'))
 # bsf_on_a_grid.search()
 # bsf_on_a_grid.reconstruct_track()
-snake_game = snake.SnakeGame(snake_speed=200, ai_mode='bfs')
-snake_game.bfs_game_loop(20)
+snake_game = snake.SnakeGame(display_width=180, display_height=220, snake_speed=20, ai_mode='ultimate')
+snake_game.ultimate_domination_loop()
 # snake_game.bfs_game_loop(1)
 # Running snake game.
 
