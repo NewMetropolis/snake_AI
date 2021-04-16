@@ -1,5 +1,6 @@
 # import rbm
 import bfs
+from graph_stuff import flood_fill, escape_trap
 import numpy as np
 import pickle
 import snake
@@ -9,8 +10,21 @@ import snake
 # bsf_on_a_grid = pickle.load(open('bsf.pkl', 'rb'))
 # bsf_on_a_grid.search()
 # bsf_on_a_grid.reconstruct_track()
-snake_game = snake.SnakeGame(display_width=180, display_height=220, snake_speed=20, ai_mode='ultimate')
-snake_game.ultimate_domination_loop()
+test_grid = np.full([4, 4], fill_value=0, dtype=int)
+test_grid[1, 3] = 1
+test_grid[2, :] = 1
+# test_grid[4, :2] = 1
+snake_1 = [np.array([1, 3])]
+snake_2 = [np.array([2, x]) for x in range(3, -1, -1)]
+# snake_3 = [np.array([4, x]) for x in range(2, -1, -1)]
+snake_ = snake_1 + snake_2 #+ snake_3
+colored_grid, n_graphs, reachable_segments = flood_fill(test_grid, (0, 0), snake_)
+escape_trap(colored_grid, snake_, reachable_segments)
+snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=20000, snake_block=20, ai_mode='bfs')
+
+grid, snake_ = snake_game.bfs_game_loop(1)
+colored_grid, n_graphs = flood_fill(grid, (0,0))
+print('End')
 # snake_game.bfs_game_loop(1)
 # Running snake game.
 

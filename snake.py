@@ -6,6 +6,7 @@ import pygame
 import random
 """Implementation of a classic '00s Snake game."""
 
+
 class SnakeGame:
     def __init__(self, display_width=600, display_height=440, snake_block=20, snake_speed=5, ai_mode=False,
                  theme='default'):
@@ -35,7 +36,7 @@ class SnakeGame:
         self.n_rows = int(self.n_rows)
         self.n_cols = int(self.n_cols)
         # Grid.
-        self.grid = np.full([self.n_rows, self.n_cols], 1, dtype=int)
+        self.grid = np.full([self.n_rows, self.n_cols], 0, dtype=int)
         # Snake itself.
         self.snake = [np.empty(2, dtype=int)]
         self.snake_head = np.empty(2, dtype=int)
@@ -189,11 +190,11 @@ class SnakeGame:
 
     def update_grid(self):
         # Reset.
-        self.grid.fill(1)
+        self.grid.fill(0)
         # Update grid by marking places where the Snake is with zeros.
         for segment in self.snake:
             if segment.sum() != -2:
-                self.grid[tuple(segment)] = 0
+                self.grid[tuple(segment)] = 1
 
         return
 
@@ -362,15 +363,15 @@ class SnakeGame:
                     snake_ = self.snake
                 else:
                     snake_ = self.snake[:-1]
-                print('Calculating optimal route.')
-                bfs_on_grid = bfs.BreadthFirstSearch(self.grid, self.snake_head.copy(), self.food.copy(), snake_.copy())
+                bfs_on_grid = bfs.BreadthFirstSearch(self.grid.copy(), self.snake_head.copy(), self.food.copy(),
+                                                     snake_.copy())
                 bfs_on_grid.search()
                 track_exists = bfs_on_grid.reconstruct_track()
                 if not track_exists:
+                    print("That' all Folks! We are going down.\n Final score: {}".format(self.score))
                     self.game_over = True
                     continue
                 n_moves = len(bfs_on_grid.track)
-                print("Number of moves: {}".format(n_moves))
                 for ith_move in range(n_moves):
                     self.move = bfs_on_grid.track[ith_move] - self.snake[0]
                     self.update_snake_position()
@@ -381,7 +382,7 @@ class SnakeGame:
             self.scores.append(self.score)
         pygame.quit()
 
-        return
+        return self.grid, self.snake
 
     def ultimate_domination_loop(self):
         """Run Snake in a 'dumb yet unbeatable mode'."""

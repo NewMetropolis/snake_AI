@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class BreadthFirstSearch:
     """Breadth First Search on a grid."""
 
@@ -43,7 +44,7 @@ class BreadthFirstSearch:
             c = c_queue.pop(0)
             node_index = r * self.n_columns + c
             # Mark as visited/now unreachable.
-            self.grid[r, c] = 0
+            self.grid[r, c] = 1
             # Explore all possible moves.
             for ith_direction in range(4):
                 r_change = self.r_moves[ith_direction]
@@ -56,8 +57,8 @@ class BreadthFirstSearch:
                     continue
                 if new_r >= self.n_rows or new_c >= self.n_columns:
                     continue
-                # Any obstacles (marked as 0s)?
-                if self.grid[new_r, new_c] == 0:
+                # Any obstacles\cell already visited
+                if self.grid[new_r, new_c] == 1:
                     continue
                 # Keep track of a route.
                 self.previous_node[new_node_index] = node_index
@@ -105,4 +106,3 @@ class BreadthFirstSearch:
         self.track.reverse()
 
         return 1
-    
