@@ -365,7 +365,7 @@ class SnakeGame:
                     snake_ = self.snake[:-1]
                 bfs_on_grid = bfs.BreadthFirstSearch(self.grid.copy(), self.snake_head.copy(), self.food.copy(),
                                                      snake_.copy())
-                bfs_on_grid.search()
+                bfs_on_grid.search_sssp()
                 track_exists = bfs_on_grid.reconstruct_track()
                 if not track_exists:
                     print("That' all Folks! We are going down.\n Final score: {}".format(self.score))

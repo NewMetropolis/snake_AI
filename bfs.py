@@ -4,7 +4,7 @@ import numpy as np
 class BreadthFirstSearch:
     """Breadth First Search on a grid."""
 
-    def __init__(self, grid, start, end, snake_body=None):
+    def __init__(self, grid, start, end=None, snake_body=None):
         self.grid = grid
         # Number of rows.
         self.n_rows = grid.shape[0]
@@ -26,13 +26,13 @@ class BreadthFirstSearch:
 
         return
 
-    def search(self):
+    def search_sssp(self):
         # A queue for holding a row index.
         r_queue = [self.start[0]]
         # A queue for holding a column index.
         c_queue = [self.start[1]]
         # Avoid duplicates in a queue.
-        enqueued = [0] * self.grid.size
+        # enqueued = [0] * self.grid.size
         # For counting number of steps.
         nodes_left_in_layer = 1
         nodes_in_next_layer = 0
@@ -43,8 +43,6 @@ class BreadthFirstSearch:
             # Current column index.
             c = c_queue.pop(0)
             node_index = r * self.n_columns + c
-            # Mark as visited/now unreachable.
-            self.grid[r, c] = 1
             # Explore all possible moves.
             for ith_direction in range(4):
                 r_change = self.r_moves[ith_direction]
@@ -58,19 +56,20 @@ class BreadthFirstSearch:
                 if new_r >= self.n_rows or new_c >= self.n_columns:
                     continue
                 # Any obstacles\cell already visited
-                if self.grid[new_r, new_c] == 1:
+                if self.grid[new_r, new_c] != 0:
                     continue
                 # Keep track of a route.
                 self.previous_node[new_node_index] = node_index
                 # Have we already reached an end?
                 if new_r == self.end[0] and new_c == self.end[1]:
+                    # For visual inspection of a grid.
+                    self.grid[tuple(self.end)] = -1
                     return self.previous_node
-                if enqueued[new_node_index] == 1:
-                    continue
                 # Add to a queue.
                 r_queue.append(new_r)
                 c_queue.append(new_c)
-                enqueued[new_node_index] = 1
+                # Status '2' = visited.
+                self.grid[new_r, new_c] = 2
                 # Keep track of how many nodes are to be visited in next layer.
                 nodes_in_next_layer += 1
             nodes_left_in_layer -= 1
@@ -83,7 +82,7 @@ class BreadthFirstSearch:
                     # Place where the Snake's tail previously was is now empty.
                     if len(self.snake) > 0 and move_count > 1:
                         index_to_empty = tuple(self.snake.pop())
-                        self.grid[index_to_empty] = 1
+                        self.grid[index_to_empty] = 0
 
         return
 

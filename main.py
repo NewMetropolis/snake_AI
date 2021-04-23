@@ -1,28 +1,40 @@
 # import rbm
 import bfs
 from graph_stuff import flood_fill, escape_trap
+from grid_stuff import fill_with_largest_rectangles
 import numpy as np
+import os
 import pickle
 import snake
 
+
+an_array_to_sum = np.full([4, 5], fill_value=1)
+an_array_to_sum[:2, 2:] = 0
+an_array_to_sum[2, 1] = 0
+print(fill_with_largest_rectangles(an_array_to_sum))
 
 # snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=50, ai_mode='if_statement')
 # bsf_on_a_grid = pickle.load(open('bsf.pkl', 'rb'))
 # bsf_on_a_grid.search()
 # bsf_on_a_grid.reconstruct_track()
-test_grid = np.full([4, 4], fill_value=0, dtype=int)
-test_grid[1, 3] = 1
-test_grid[2, :] = 1
-# test_grid[4, :2] = 1
-snake_1 = [np.array([1, 3])]
-snake_2 = [np.array([2, x]) for x in range(3, -1, -1)]
-# snake_3 = [np.array([4, x]) for x in range(2, -1, -1)]
-snake_ = snake_1 + snake_2 #+ snake_3
-colored_grid, n_graphs, reachable_segments = flood_fill(test_grid, (0, 0), snake_)
-escape_trap(colored_grid, snake_, reachable_segments)
+test_grid = np.full([2, 2], fill_value=0, dtype=int)
+#
+snake_1 = [np.array([3, 7])]
+snake_2 = [np.array([4, x]) for x in range(7, -1, -1)]
+snake_3 = [np.array([5, x]) for x in range(4, -1, -1)]
+snake_ = snake_1 + snake_2 + snake_3
+snake_ = [np.array([0, 0]), np.array([0, 1])]
+for segment in snake_:
+    test_grid[tuple(segment)] = 1
+# path_='C:\\Users\\Marcin\\PycharmProjects\\snake_nn'
+#
+# test_grid, _, _, snake_ = pickle.load(open(os.path.join(path_, 'problematic_snake.pkl'), 'rb'))
+
+# colored_grid, n_graphs, reachable_segments = flood_fill(test_grid, snake_[0], snake_)
+# escape_trap(colored_grid, snake_, reachable_segments)
 snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=20000, snake_block=20, ai_mode='bfs')
 
-grid, snake_ = snake_game.bfs_game_loop(1)
+grid, snake_ = snake_game.bfs_game_loop(5)
 colored_grid, n_graphs = flood_fill(grid, (0,0))
 print('End')
 # snake_game.bfs_game_loop(1)
