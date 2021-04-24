@@ -58,20 +58,21 @@ def largest_area_under_histogram(histogram):
             max_area = max(max_area, area)
             if area == max_area:
                 if stack:
-                    max_col_start = stack[-1] + 1
-                    max_col_stop = index - 1
+                    max_col_start = top_of_stack
+                    max_col_stop = max_col_start + index - stack[-1] - 2
                 else:
-                    max_col_start = 0
-                    max_col_stop = index - 1
+                    max_col_start = top_of_stack
+                    max_col_stop = max_col_start + index - 2
     while stack:
         top_of_stack = stack.pop()
         area = (histogram[top_of_stack] * ((index - stack[-1] - 1) if stack else index))
         max_area = max(max_area, area)
-        if stack:
-            max_col_start = stack[-1] + 1
-            max_col_stop = index - 1
-        else:
-            max_col_start = 0
-            max_col_stop = index - 1
+        if area == max_area:
+            if stack:
+                max_col_start = top_of_stack
+                max_col_stop = max_col_start + index - stack[-1] - 2
+            else:
+                max_col_start = top_of_stack
+                max_col_stop = max_col_start + index - 2
 
     return max_area, max_col_start, max_col_stop
