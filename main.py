@@ -7,13 +7,15 @@ import os
 import pickle
 import snake
 
-print(largest_area_under_histogram(np.array([1,12,12,3,0,0])))
-print(largest_area_under_histogram(np.array([
-    12,12,3])))
+# print(largest_area_under_histogram(np.array([1,12,12,3,0,0])))
+# print(largest_area_under_histogram(np.array([12,12,3])))
+# print(largest_area_under_histogram(np.array([1, 2, 3, 4])))
+# print(largest_area_under_histogram(np.array([1, 6, 6, 6])))
+# print(largest_area_under_histogram(np.array([2, 1, 0, 0, 0])))
 an_array_to_sum = np.full([4, 5], fill_value=1)
 an_array_to_sum[:2, 2:] = 0
 an_array_to_sum[2, 1] = 0
-# print(fill_with_largest_rectangles(an_array_to_sum))
+print(fill_with_largest_rectangles(an_array_to_sum))
 
 # snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=50, ai_mode='if_statement')
 # bsf_on_a_grid = pickle.load(open('bsf.pkl', 'rb'))
