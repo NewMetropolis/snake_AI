@@ -1,22 +1,21 @@
 # import rbm
 import bfs
 from graph_stuff import flood_fill, escape_trap
-from a_star import a_star_grid
+from a_star import a_star_grid, mark_snakes_way
 from grid_stuff import fill_with_largest_rectangles, largest_area_under_histogram
 import numpy as np
 import os
 import pickle
 import snake
 
-# print(largest_area_under_histogram(np.array([1,12,12,3,0,0])))
-# print(largest_area_under_histogram(np.array([12,12,3])))
-# print(largest_area_under_histogram(np.array([1, 2, 3, 4])))
-# print(largest_area_under_histogram(np.array([1, 6, 6, 6])))
-# print(largest_area_under_histogram(np.array([2, 1, 0, 0, 0])))
-an_array_to_sum = np.full([4, 5], fill_value=1)
-an_array_to_sum[1:, 2] = 0
+test_grid = np.full([20, 20], fill_value=1)
+test_grid[2:, 3] = 0
+test_grid[2:5, 1] = 0
+test_grid[2, 1:4] = 0
 # an_array_to_sum[2, 1] = 0
-a_star_grid(an_array_to_sum, [3, 4], [3, 1] )
+track = a_star_grid(test_grid, [3, 7], [3, 2])
+mark_snakes_way(test_grid, track)
+print('End')
 # print(fill_with_largest_rectangles(an_array_to_sum))
 
 # snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=50, ai_mode='if_statement')
