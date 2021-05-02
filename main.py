@@ -2,16 +2,17 @@
 import bfs
 from graph_stuff import flood_fill, escape_trap
 from a_star import a_star_grid, mark_snakes_way
+from graph_stuff import find_articulation_points
 from grid_stuff import fill_with_largest_rectangles, largest_area_under_histogram
 import numpy as np
 import os
 import pickle
 import snake
 
-test_grid = np.full([20, 20], fill_value=1)
-test_grid[2:, 3] = 0
-test_grid[2:5, 1] = 0
-test_grid[2, 1:4] = 0
+test_grid = np.full([3, 3], fill_value=1)
+test_grid[0, 2] = 0
+test_grid[1, 0] = 0
+find_articulation_points(test_grid, [0,0])
 # an_array_to_sum[2, 1] = 0
 track = a_star_grid(test_grid, [3, 7], [3, 2])
 mark_snakes_way(test_grid, track)
