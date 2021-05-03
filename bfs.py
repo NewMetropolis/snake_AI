@@ -105,3 +105,72 @@ class BreadthFirstSearch:
         self.track.reverse()
 
         return 1
+
+
+class BreadthFirstSearchFlat:
+    """Breadth First Search on a flattened grid."""
+
+    def __init__(self, grid_flattened, n_columns, start, end=None):
+        # snake_body=None
+        self.grid = grid_flattened
+        self.n = self.grid.size
+        self.n_columns = n_columns
+        self.start = start
+        self.end = end
+        # Allowed moves on a flattened grid.
+        self.moves = [1, -self.n_columns, -1, self.n_columns]
+        # For reconstructing paths to nodes.
+        self.previous_node = np.full([self.n], fill_value=-1, dtype=int)
+
+        # Can be used for navigating Snake in a game.
+        # self.snake = snake_body
+        # self.track = []
+
+        return
+
+    def search_sssp(self):
+        queue = [self.start]
+        # For counting number of steps.
+        nodes_left_in_layer = 1
+        nodes_in_next_layer = 0
+        move_count = 0
+        while queue:
+            idx = queue.pop(0)
+            # Status '2' = visited.
+            self.grid[idx] = 2
+            # Explore all possible moves.
+            for idx_change in self.moves:
+                new_idx = idx + idx_change
+                if new_idx < 0 or new_idx >= self.n:
+                    continue
+                # Obstacles are marked with 0's, already visited cells with 2's, already enqueued with 3's.
+                elif self.grid[new_idx] != 1:
+                    continue
+                elif idx_change == 1 and new_idx % self.n_columns == 0:
+                    continue
+                elif idx_change == -1 and idx % self.n_columns == 0:
+                    continue
+                # Status for enqueued.
+                self.grid[new_idx] = 3
+                # Keep track of a route.
+                self.previous_node[new_idx] = idx
+                if new_idx == self.end:
+                    self.grid[new_idx] = 2
+                    return self.previous_node
+                # Add to a queue.
+                queue.append(new_idx)
+                # Keep track of how many nodes are to be visited in next layer.
+                nodes_in_next_layer += 1
+            nodes_left_in_layer -= 1
+            # Did we exit a current layer yet?
+            if nodes_left_in_layer == 0:
+                nodes_left_in_layer = nodes_in_next_layer
+                nodes_in_next_layer = 0
+                move_count += 1
+                # if self.snake:
+                #     # Place where the Snake's tail previously was is now empty.
+                #     if len(self.snake) > 0 and move_count > 1:
+                #         index_to_empty = tuple(self.snake.pop())
+                #         self.grid[index_to_empty] = 0
+
+        return 0

@@ -1,5 +1,5 @@
 # import rbm
-import bfs
+from bfs import BreadthFirstSearchFlat
 from graph_stuff import flood_fill, escape_trap
 from a_star import a_star_grid, mark_snakes_way
 from graph_stuff import find_articulation_points
@@ -9,14 +9,16 @@ import os
 import pickle
 import snake
 
-test_grid = np.full([3, 3], fill_value=1)
-test_grid[0, 2] = 0
-test_grid[1, 0] = 0
+test_grid = np.full([5, 5], fill_value=1)
+# test_grid[0, 2] = 0
+# test_grid[1, 0] = 0
+bfs = BreadthFirstSearchFlat(test_grid.flatten(), 5, 4, 10)
+bfs.search_sssp()
+print('End')
 find_articulation_points(test_grid, [0,0])
-# an_array_to_sum[2, 1] = 0
 track = a_star_grid(test_grid, [3, 7], [3, 2])
 mark_snakes_way(test_grid, track)
-print('End')
+# an_array_to_sum[2, 1] = 0
 # print(fill_with_largest_rectangles(an_array_to_sum))
 
 # snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=50, ai_mode='if_statement')
