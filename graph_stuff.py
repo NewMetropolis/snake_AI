@@ -315,14 +315,14 @@ def find_articulation_points(grid, start):
     child_count = dict(zip(unique, counts))
     articulation_point[start_f] = child_count[start_f] > 2
 
-    return
+    return articulation_point
 
 
 def prune_not_traversable_subgraphs(grid_flattened, articulation_points, start, end, n_cols):
     """Remove biconnected subgraphs that are not traversable on a simple path from start to end."""
-    n = grid_flattened.size()
+    n = grid_flattened.size
     allowed_moves = [1, -n_cols, -1, n_cols]
-    articulation_indexes = [x for x in range(n)][articulation_points]
+    articulation_indexes = np.array(np.arange(n))[articulation_points]
     not_traversable = []
     for idx in articulation_indexes:
         flattened_copy = grid_flattened.copy()
@@ -339,12 +339,13 @@ def prune_not_traversable_subgraphs(grid_flattened, articulation_points, start, 
             elif idx_change == -1 and idx % n_cols == 0:
                 continue
             # There should be 'reset object' function or so, probably.
-            bfs = BreadthFirstSearchFlat(grid_flattened, n_cols, new_idx, end)
+            bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, end)
             track_to_end = bfs.search_sssp()
-            if not track_to_end:
-                bfs = BreadthFirstSearchFlat(grid_flattened, n_cols, new_idx, start)
+            if type(track_to_end) is int and track_to_end == 0:
+                bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, start)
                 track_to_start = bfs.search_sssp()
-                if not track_to_end:
-                    not_traversable.append(np.argwhere(bfs.grid == 2))
+                if type(track_to_start) is int and track_to_start == 0:
+                    not_traversable = not_traversable + list(np.argwhere(bfs.grid == 2).flatten())
+                    grid_flattened[bfs.grid == 2] = 0
                     
-    return
+    return not_traversable

@@ -112,7 +112,7 @@ class BreadthFirstSearchFlat:
 
     def __init__(self, grid_flattened, n_columns, start, end=None):
         # snake_body=None
-        self.grid = grid_flattened
+        self.grid = grid_flattened.copy()
         self.n = self.grid.size
         self.n_columns = n_columns
         self.start = start
@@ -129,6 +129,9 @@ class BreadthFirstSearchFlat:
         return
 
     def search_sssp(self):
+        if self.start == self.end:
+            self.grid[self.end] = 2
+            return 1
         queue = [self.start]
         # For counting number of steps.
         nodes_left_in_layer = 1
