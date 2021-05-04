@@ -1,7 +1,7 @@
 # import rbm
 from bfs import BreadthFirstSearchFlat
 from graph_stuff import flood_fill, escape_trap
-from a_star import a_star_grid, mark_snakes_way
+from a_star import AStarGrid, mark_snakes_way
 from graph_stuff import find_articulation_points, prune_not_traversable_subgraphs
 from grid_stuff import fill_with_largest_rectangles, largest_area_under_histogram
 import numpy as np
@@ -9,17 +9,18 @@ import os
 import pickle
 import snake
 
-test_grid = np.full([5, 5], fill_value=1)
-test_grid[1, 1:4] = 0
-test_grid[4, 1:4] = 0
-test_grid[[1, 2, 4], 1] = 0
+test_grid = np.full([4, 4], fill_value=1)
+test_grid[1:, 2] = 0
 test_grid[1:, 3] = 0
+# test_grid[[1, 2, 4], 1] = 0
+# test_grid[1:, 3] = 0
+asg = AStarGrid(test_grid, [3, 3], [3, 0])
+asg.compute_shortest(snake=[14, 10, 6, 5, 9, 13])
 articulation_points = find_articulation_points(test_grid, [4, 0])
 prune_not_traversable_subgraphs(test_grid.flatten(), articulation_points=articulation_points, start=20, end=24, n_cols=5)
 bfs = BreadthFirstSearchFlat(test_grid.flatten(), 5, 4, 10)
 bfs.search_sssp()
 print('End')
-track = a_star_grid(test_grid, [3, 7], [3, 2])
 mark_snakes_way(test_grid, track)
 # an_array_to_sum[2, 1] = 0
 # print(fill_with_largest_rectangles(an_array_to_sum))

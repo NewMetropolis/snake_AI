@@ -1,7 +1,6 @@
 import numpy as np
 from pqdict import pqdict
 import sys
-
 """Implementation of A* algorithm"""
 
 
@@ -26,21 +25,24 @@ class AStarGrid:
         """
         # grid, start, end
         # grid_for_inspection = grid.copy()
+        self.grid_2d = grid_2d
         self.grid = grid_2d.flatten()
-        n = grid.size
+        n = grid_2d.size
         self.n = n
-        self.n_cols = grid.shape[1]
-        self.start = np.ravel_multi_index(start_2d, n)
-        self.end = np.ravel_multi_index(end_2d, n)
+        self.n_cols = grid_2d.shape[1]
+        self.start = np.ravel_multi_index(start_2d, grid_2d.shape)
+        self.end = np.ravel_multi_index(end_2d, grid_2d.shape)
+        self.end_2d = end_2d
         self.visited = np.full([n], fill_value=False)
         self.previous = np.full([n], fill_value=-1, dtype=int)
         self.allowed_moves = [1, -self.n_cols, -1, self.n_cols]
 
     def precompute_snake_distance(self):
         """Precompute Snake/taxicab distance."""
-        indexing_2d = np.indices(grid.shape)
-        row_diff = np.abs(indexing_2d[0] - end[0])
-        col_diff = np.abs(indexing_2d[1] - end[1])
+
+        indexing_2d = np.indices(self.grid_2d.shape)
+        row_diff = np.abs(indexing_2d[0] - self.end_2d[0])
+        col_diff = np.abs(indexing_2d[1] - self.end_2d[1])
         # noinspection PyAttributeOutsideInit
         self.snake_dist = (row_diff + col_diff).flatten()
 
@@ -48,7 +50,7 @@ class AStarGrid:
         """Check if a move on a grid is valid ."""
         if new_node_id < 0 or new_node_id >= self.n:
             pass
-        elif grid[new_node_id] == 0:
+        elif self.grid[new_node_id] == 0:
             pass
         elif self.visited[new_node_id]:
             pass
@@ -70,7 +72,7 @@ class AStarGrid:
         if self.start == self.end:
             sys.exit('End and start nodes are the same.')
         self.precompute_snake_distance()
-        actual_distance = np.full([self.n], fill_value=np.inf)
+        actual_distance = np.full([self.n], fill_value=np.iinfo(np.int32).max, dtype=int)
         actual_distance[self.start] = 0
         indexed_pq = pqdict({self.start: actual_distance[self.start] + self.snake_dist[self.start]})
         nodes_to_free = []
@@ -90,7 +92,9 @@ class AStarGrid:
             self.visited[node_id] = True
             for id_change in self.allowed_moves:
                 new_node_id = node_id + id_change
-                self.validate_move(node_id, id_change, new_node_id)
+                valid_move = self.validate_move(node_id, id_change, new_node_id)
+                if not valid_move:
+                    continue
                 # Mind 1, for a grid situation.
                 new_distance = actual_distance[node_id] + 1
                 if new_distance < actual_distance[new_node_id]:
@@ -101,6 +105,8 @@ class AStarGrid:
                     track = reconstruct_track_flatten(self.previous, self.start, self.end)
 
                     return track
+
+        return
 
 
 def reconstruct_track_flatten(previous, start, end):
