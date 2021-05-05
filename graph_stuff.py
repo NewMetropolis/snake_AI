@@ -72,7 +72,7 @@ def find_articulation_points(grid, start):
 
 
 def largest_biconnected_component(grid_flattened, articulation_points, start, end, n_cols, mode='count'):
-    """Heuristics for finding largest biconnected components/traversable simple paths between start and end."""
+    """Finds largest biconnected components/traversable simple paths between start and end."""
     n = grid_flattened.size
     allowed_moves = [1, -n_cols, -1, n_cols]
     articulation_indexes = np.array(np.arange(n))[articulation_points]
@@ -96,7 +96,7 @@ def largest_biconnected_component(grid_flattened, articulation_points, start, en
             if mode == 'count':
                 end_reachable, nodes_count = bfs.search_sssp(return_count=True)
                 return end_reachable, nodes_count
-            else:
+            elif mode == 'prune':
                 end_reachable, _ = bfs.search_sssp()
                 if not end_reachable:
                     bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, start)
