@@ -110,7 +110,7 @@ class BreadthFirstSearch:
 class BreadthFirstSearchFlat:
     """Breadth First Search on a flattened grid."""
 
-    def __init__(self, grid_flattened, n_columns, start, end=None):
+    def __init__(self, grid_flattened, n_columns, start, end=None, snake=None):
         # snake_body=None
         self.grid = grid_flattened.copy()
         self.n = self.grid.size
@@ -122,23 +122,34 @@ class BreadthFirstSearchFlat:
         # For reconstructing paths to nodes.
         self.previous_node = np.full([self.n], fill_value=-1, dtype=int)
 
-        # Can be used for navigating Snake in a game.
-        # self.snake = snake_body
+        # When ther is a "Snake" on the grid its tail will move.
+        self.snake = snake
         # self.track = []
 
         return
 
-    def search_sssp(self):
+    def search_sssp(self, return_count=False):
         if self.start == self.end:
             self.grid[self.end] = 2
             return 1
+        reached_end = False
         queue = [self.start]
         # For counting number of steps.
         nodes_left_in_layer = 1
         nodes_in_next_layer = 0
         move_count = 0
         while queue:
+            if self.snake:
+                self.grid[nodes_to_free] = 0
             idx = queue.pop(0)
+            # node_id = indexed_pq.pop()
+            if self.snake:
+                if move_count >= len(self.snake):
+                    nodes_to_free = self.snake
+                else:
+                    # Check details of the Snake's implementation. It should work that way.
+                    nodes_to_free = self.snake[-(move_count + 1):]
+                self.grid[nodes_to_free] = 1
             # Status '2' = visited.
             self.grid[idx] = 2
             # Explore all possible moves.
@@ -158,8 +169,10 @@ class BreadthFirstSearchFlat:
                 # Keep track of a route.
                 self.previous_node[new_idx] = idx
                 if new_idx == self.end:
-                    self.grid[new_idx] = 2
-                    return self.previous_node
+                    reached_end = True
+                    if not return_count:
+                        self.grid[new_idx] = 2
+                        break
                 # Add to a queue.
                 queue.append(new_idx)
                 # Keep track of how many nodes are to be visited in next layer.
@@ -176,4 +189,7 @@ class BreadthFirstSearchFlat:
                 #         index_to_empty = tuple(self.snake.pop())
                 #         self.grid[index_to_empty] = 0
 
-        return 0
+        if not return_count:
+            return reached_end, self.previous_node
+        else:
+            return reached_end, self.grid[self.grid == 2].sum()

@@ -2,6 +2,112 @@ from bfs import BreadthFirstSearchFlat
 import numpy as np
 
 
+def find_articulation_points(grid, start):
+    """Find articulation points on a grid using Depth First Search based method."""
+    # For debugging.
+    ids_for_inspection = grid.copy()
+    lowpoint_for_inspection = grid.copy()
+    # Grid related values.
+    flatten = grid.flatten()
+    start_f = np.ravel_multi_index(start, grid.shape)
+    n_cols = grid.shape[1]
+    n = grid.size
+    # Arrays for an algorithm bookkeeping.
+    visited = np.full([n], fill_value=False)
+    node_id = np.full([n], fill_value=-1, dtype=int)
+    lowpoint = np.full([n], fill_value=np.inf)
+    parent_arr = np.full([n], fill_value=-1, dtype=int)
+    articulation_point = np.full([n], fill_value=False)
+    # Initialize with starting node.
+    node_stack = [start_f]
+    backtrack_list = [start_f]
+    parent_arr[start_f] = start_f
+    current_id = 0
+    # This is how we can move on a grid.
+    allowed_moves = [1, -n_cols, -1, n_cols]
+
+    while node_stack:
+        flat_index = node_stack.pop()
+        if not visited[flat_index]:
+            visited[flat_index] = True
+            node_id[flat_index] = current_id
+            lowpoint[flat_index] = current_id
+            lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
+            ids_for_inspection[np.unravel_index(flat_index, grid.shape)] = node_id[flat_index]
+            current_id += 1
+
+        for index_change in allowed_moves:
+            new_flat_index = flat_index + index_change
+
+            if new_flat_index < 0 or new_flat_index >= n:
+                continue
+            elif flatten[new_flat_index] == 0:
+                continue
+            elif index_change == 1 and new_flat_index % n_cols == 0:
+                continue
+            elif index_change == -1 and flat_index % n_cols == 0:
+                continue
+            elif new_flat_index == parent_arr[flat_index]:
+                continue
+            if visited[new_flat_index]:
+                lowpoint[flat_index] = min(lowpoint[flat_index], node_id[new_flat_index])
+                lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
+            else:
+                parent_arr[new_flat_index] = flat_index
+                node_stack.append(new_flat_index)
+                backtrack_list.append(new_flat_index)
+
+    while backtrack_list:
+        child = backtrack_list.pop()
+        parent = parent_arr[child]
+        lowpoint[parent] = min(lowpoint[parent], lowpoint[child])
+        lowpoint_for_inspection[np.unravel_index(parent, grid.shape)] = lowpoint[parent]
+        if node_id[parent] <= lowpoint[child]:
+            articulation_point[parent] = True
+    unique, counts = np.unique(parent_arr, return_counts=True)
+    child_count = dict(zip(unique, counts))
+    articulation_point[start_f] = child_count[start_f] > 2
+
+    return articulation_point
+
+
+def largest_biconnected_component(grid_flattened, articulation_points, start, end, n_cols, mode='count'):
+    """Heuristics for finding largest biconnected components/traversable simple paths between start and end."""
+    n = grid_flattened.size
+    allowed_moves = [1, -n_cols, -1, n_cols]
+    articulation_indexes = np.array(np.arange(n))[articulation_points]
+    not_traversable = []
+    for idx in articulation_indexes:
+        flattened_copy = grid_flattened.copy()
+        flattened_copy[idx] = 0
+
+        for idx_change in allowed_moves:
+            new_idx = idx + idx_change
+            if new_idx < 0 or new_idx >= n:
+                continue
+            elif flattened_copy[new_idx] == 0:
+                continue
+            elif idx_change == 1 and new_idx % n_cols == 0:
+                continue
+            elif idx_change == -1 and idx % n_cols == 0:
+                continue
+            # There should be 'reset object' function or so, probably.
+            bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, end)
+            if mode == 'count':
+                end_reachable, nodes_count = bfs.search_sssp(return_count=True)
+                return end_reachable, nodes_count
+            else:
+                end_reachable, _ = bfs.search_sssp()
+                if not end_reachable:
+                    bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, start)
+                    start_reachable, track_to_start = bfs.search_sssp()
+                    if not start_reachable:
+                        not_traversable = not_traversable + list(np.argwhere(bfs.grid == 2).flatten())
+                        grid_flattened[bfs.grid == 2] = 0
+
+    return not_traversable
+
+
 def flood_fill(grid, start, snake=None):
     """Flood fill on a grid.
     Returns labeled grid and a total number of disjoint graphs."""
@@ -249,103 +355,4 @@ def escape_trap_2(colored_grid, snake, reachable):
     return
 
 
-def find_articulation_points(grid, start):
-    """Find articulation points on a grid using Depth First Search based method."""
-    # For debugging.
-    ids_for_inspection = grid.copy()
-    lowpoint_for_inspection = grid.copy()
-    # Grid related values.
-    flatten = grid.flatten()
-    start_f = np.ravel_multi_index(start, grid.shape)
-    n_cols = grid.shape[1]
-    n = grid.size
-    # Arrays for an algorithm bookkeeping.
-    visited = np.full([n], fill_value=False)
-    node_id = np.full([n], fill_value=-1, dtype=int)
-    lowpoint = np.full([n], fill_value=np.inf)
-    parent_arr = np.full([n], fill_value=-1, dtype=int)
-    articulation_point = np.full([n], fill_value=False)
-    # Initialize with starting node.
-    node_stack = [start_f]
-    backtrack_list = [start_f]
-    parent_arr[start_f] = start_f
-    current_id = 0
-    # This is how we can move on a grid.
-    allowed_moves = [1, -n_cols, -1, n_cols]
 
-    while node_stack:
-        flat_index = node_stack.pop()
-        if not visited[flat_index]:
-            visited[flat_index] = True
-            node_id[flat_index] = current_id
-            lowpoint[flat_index] = current_id
-            lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
-            ids_for_inspection[np.unravel_index(flat_index, grid.shape)] = node_id[flat_index]
-            current_id += 1
-
-        for index_change in allowed_moves:
-            new_flat_index = flat_index + index_change
-
-            if new_flat_index < 0 or new_flat_index >= n:
-                continue
-            elif flatten[new_flat_index] == 0:
-                continue
-            elif index_change == 1 and new_flat_index % n_cols == 0:
-                continue
-            elif index_change == -1 and flat_index % n_cols == 0:
-                continue
-            elif new_flat_index == parent_arr[flat_index]:
-                continue
-            if visited[new_flat_index]:
-                lowpoint[flat_index] = min(lowpoint[flat_index], node_id[new_flat_index])
-                lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
-            else:
-                parent_arr[new_flat_index] = flat_index
-                node_stack.append(new_flat_index)
-                backtrack_list.append(new_flat_index)
-
-    while backtrack_list:
-        child = backtrack_list.pop()
-        parent = parent_arr[child]
-        lowpoint[parent] = min(lowpoint[parent], lowpoint[child])
-        lowpoint_for_inspection[np.unravel_index(parent, grid.shape)] = lowpoint[parent]
-        if node_id[parent] <= lowpoint[child]:
-            articulation_point[parent] = True
-    unique, counts = np.unique(parent_arr, return_counts=True)
-    child_count = dict(zip(unique, counts))
-    articulation_point[start_f] = child_count[start_f] > 2
-
-    return articulation_point
-
-
-def prune_not_traversable_subgraphs(grid_flattened, articulation_points, start, end, n_cols):
-    """Remove biconnected subgraphs that are not traversable on a simple path from start to end."""
-    n = grid_flattened.size
-    allowed_moves = [1, -n_cols, -1, n_cols]
-    articulation_indexes = np.array(np.arange(n))[articulation_points]
-    not_traversable = []
-    for idx in articulation_indexes:
-        flattened_copy = grid_flattened.copy()
-        flattened_copy[idx] = 0
-
-        for idx_change in allowed_moves:
-            new_idx = idx + idx_change
-            if new_idx < 0 or new_idx >= n:
-                continue
-            elif flattened_copy[new_idx] == 0:
-                continue
-            elif idx_change == 1 and new_idx % n_cols == 0:
-                continue
-            elif idx_change == -1 and idx % n_cols == 0:
-                continue
-            # There should be 'reset object' function or so, probably.
-            bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, end)
-            track_to_end = bfs.search_sssp()
-            if type(track_to_end) is int and track_to_end == 0:
-                bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, start)
-                track_to_start = bfs.search_sssp()
-                if type(track_to_start) is int and track_to_start == 0:
-                    not_traversable = not_traversable + list(np.argwhere(bfs.grid == 2).flatten())
-                    grid_flattened[bfs.grid == 2] = 0
-                    
-    return not_traversable

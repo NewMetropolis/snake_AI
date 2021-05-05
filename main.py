@@ -15,7 +15,7 @@ test_grid[1:, 3] = 0
 # test_grid[[1, 2, 4], 1] = 0
 # test_grid[1:, 3] = 0
 asg = AStarGrid(test_grid, [3, 3], [3, 0])
-asg.compute_shortest(snake=[14, 10, 6, 5, 9, 13])
+asg.compute_shortest(snake=[15, 11, 7, 6, 10, 14])
 articulation_points = find_articulation_points(test_grid, [4, 0])
 prune_not_traversable_subgraphs(test_grid.flatten(), articulation_points=articulation_points, start=20, end=24, n_cols=5)
 bfs = BreadthFirstSearchFlat(test_grid.flatten(), 5, 4, 10)
