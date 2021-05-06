@@ -25,7 +25,8 @@ def find_articulation_points(grid, start):
     current_id = 0
     # This is how we can move on a grid.
     allowed_moves = [1, -n_cols, -1, n_cols]
-
+    n_moves = 1
+    last_node = start_f
     while node_stack:
         flat_index = node_stack.pop()
         if not visited[flat_index]:
@@ -35,7 +36,10 @@ def find_articulation_points(grid, start):
             lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
             ids_for_inspection[np.unravel_index(flat_index, grid.shape)] = node_id[flat_index]
             current_id += 1
-
+            if parent_arr[flat_index] == last_node:
+                n_moves += 1
+        if parent_arr[last_node] == flat_index:
+            n_moves -= 1
         for index_change in allowed_moves:
             new_flat_index = flat_index + index_change
 
@@ -56,7 +60,7 @@ def find_articulation_points(grid, start):
                 parent_arr[new_flat_index] = flat_index
                 node_stack.append(new_flat_index)
                 backtrack_list.append(new_flat_index)
-
+        last_node = flat_index
     while backtrack_list:
         child = backtrack_list.pop()
         parent = parent_arr[child]
@@ -71,7 +75,7 @@ def find_articulation_points(grid, start):
     return articulation_point
 
 
-def largest_biconnected_component(grid_flattened, articulation_points, start, end, n_cols, mode='count'):
+def largest_biconnected_component(grid_flattened, articulation_points, start, end, n_cols):
     """Finds largest biconnected components/traversable simple paths between start and end."""
     n = grid_flattened.size
     allowed_moves = [1, -n_cols, -1, n_cols]
@@ -93,17 +97,13 @@ def largest_biconnected_component(grid_flattened, articulation_points, start, en
                 continue
             # There should be 'reset object' function or so, probably.
             bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, end)
-            if mode == 'count':
-                end_reachable, nodes_count = bfs.search_sssp(return_count=True)
-                return end_reachable, nodes_count
-            elif mode == 'prune':
-                end_reachable, _ = bfs.search_sssp()
-                if not end_reachable:
-                    bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, start)
-                    start_reachable, track_to_start = bfs.search_sssp()
-                    if not start_reachable:
-                        not_traversable = not_traversable + list(np.argwhere(bfs.grid == 2).flatten())
-                        grid_flattened[bfs.grid == 2] = 0
+            end_reachable, _ = bfs.search_sssp()
+            if not end_reachable:
+                bfs = BreadthFirstSearchFlat(flattened_copy, n_cols, new_idx, start)
+                start_reachable, track_to_start = bfs.search_sssp()
+                if not start_reachable:
+                    not_traversable = not_traversable + list(np.argwhere(bfs.grid == 2).flatten())
+                    grid_flattened[bfs.grid == 2] = 0
 
     return not_traversable
 
