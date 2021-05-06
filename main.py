@@ -9,36 +9,14 @@ import os
 import pickle
 import snake
 
-test_grid = np.full([3, 6], fill_value=1)
-test_grid[[0, 2], 3] = 0
-test_grid[1, [1, 5]] = 0
-# test_grid[1, [0, 2, 3]] = 0
-# test_grid[[1, 2, 4], 1] = 0
-# test_grid[1:, 3] = 0
-articulation_points = find_articulation_points(test_grid, [0, 0])
-asg = AStarGrid(test_grid, [3, 3], [3, 0])
-asg.compute_shortest(snake=[15, 11, 7, 6, 10, 14])
-# prune_not_traversable_subgraphs(test_grid.flatten(), articulation_points=articulation_points, start=20, end=24, n_cols=5)
-bfs = BreadthFirstSearchFlat(test_grid.flatten(), 5, 4, 10)
-bfs.search_sssp()
-print('End')
-mark_snakes_way(test_grid, track)
-# an_array_to_sum[2, 1] = 0
-# print(fill_with_largest_rectangles(an_array_to_sum))
-
-# snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=50, ai_mode='if_statement')
-# bsf_on_a_grid = pickle.load(open('bsf.pkl', 'rb'))
-# bsf_on_a_grid.search()
-# bsf_on_a_grid.reconstruct_track()
-test_grid = np.full([2, 2], fill_value=0, dtype=int)
-#
-snake_1 = [np.array([3, 7])]
-snake_2 = [np.array([4, x]) for x in range(7, -1, -1)]
-snake_3 = [np.array([5, x]) for x in range(4, -1, -1)]
-snake_ = snake_1 + snake_2 + snake_3
-snake_ = [np.array([0, 0]), np.array([0, 1])]
-for segment in snake_:
-    test_grid[tuple(segment)] = 1
+test_grid = np.full([4, 4], fill_value=1)
+# Coordinates should be 2D/consistent with grid.
+snake_ = np.array([[2, 3], [2, 2], [1, 2], [0, 2]])
+test_grid[snake_[:, 0], snake_[:, 1]] = 0
+end = [3, 3]
+asg = AStarGrid(test_grid, snake_[0], end, snake=snake_)
+track = asg.compute_longest()
+print('End.')
 # path_='C:\\Users\\Marcin\\PycharmProjects\\snake_nn'
 #
 # test_grid, _, _, snake_ = pickle.load(open(os.path.join(path_, 'problematic_snake.pkl'), 'rb'))

@@ -138,18 +138,19 @@ class BreadthFirstSearchFlat:
         nodes_left_in_layer = 1
         nodes_in_next_layer = 0
         move_count = 0
+        nodes_to_free = []
         while queue:
-            if self.snake:
-                self.grid[nodes_to_free] = 0
+            # if self.snake is not None:
+            #     self.grid[nodes_to_free] = 0
             idx = queue.pop(0)
             # node_id = indexed_pq.pop()
-            if self.snake:
+            if self.snake is not None:
                 if move_count >= len(self.snake):
                     nodes_to_free = self.snake
                 else:
                     # Check details of the Snake's implementation. It should work that way.
                     nodes_to_free = self.snake[-(move_count + 1):]
-                self.grid[nodes_to_free] = 1
+                self.grid[self.grid[nodes_to_free] == 0] = 1
             # Status '2' = visited.
             self.grid[idx] = 2
             # Explore all possible moves.

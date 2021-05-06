@@ -38,8 +38,9 @@ class AStarGrid:
         self.visited = np.full([n], fill_value=False)
         self.previous = np.full([n], fill_value=-1, dtype=int)
         self.allowed_moves = [1, -self.n_cols, -1, self.n_cols]
-        if snake:
-            self.snake = snake
+        if snake is not None:
+            snake = np.array(snake)
+            self.snake = np.ravel_multi_index((snake[:, 0], snake[:, 1]), grid_2d.shape)
 
     def precompute_snake_distance(self):
         """Precompute Snake/taxicab distance."""
@@ -141,10 +142,11 @@ class AStarGrid:
         nodes_to_visit = []
         for id_change in self.allowed_moves:
             new_node_id = node_id + id_change
+            # Here we do not account for the last Snake's segment case.
             valid_move = self.validate_move(node_id, id_change, new_node_id)
             if valid_move:
                 nodes_to_visit.append(new_node_id)
-        heuristics =[]
+        heuristics = []
         for node_to_expand in nodes_to_visit:
             for node_to_close in nodes_to_visit:
                 if node_to_close != node_to_expand:
@@ -157,32 +159,26 @@ class AStarGrid:
 
         return nodes_to_visit, heuristics
 
-    def compute_longest(self, snake=None):
-        """Compute the longest path.
+    def compute_longest(self):
+        """Compute the longest path."""
 
-        Args:
-            snake (list: int): Indexes on a flat grid, where the Snake is. When provided, Snake's tail will move as a
-            path progresses.
-
-        """
         if self.start == self.end:
             sys.exit('End and start nodes are the same.')
-        self.precompute_snake_distance()
         actual_distance = np.full([self.n], fill_value=np.iinfo(np.int32).min, dtype=int)
         actual_distance[self.start] = 0
         h = self.longest_path_heuristics(self.start)
         indexed_pq = pqdict({self.start: actual_distance[self.start] + h})
         nodes_to_free = []
         while indexed_pq:
-            if snake:
+            if self.snake is not None:
                 self.grid[nodes_to_free] = 0
             node_id = indexed_pq.pop()
-            if snake:
-                if actual_distance[node_id] >= len(snake):
-                    nodes_to_free = snake
+            if self.snake is not None:
+                if actual_distance[node_id] >= len(self.snake):
+                    nodes_to_free = self.snake
                 else:
                     # Check details of the Snake's implementation. It should work that way.
-                    nodes_to_free = snake[-(actual_distance[node_id] + 1):]
+                    nodes_to_free = self.snake[-(actual_distance[node_id] + 1):]
                 self.grid[nodes_to_free] = 1
             # position_2d = np.unravel_index(node_id, grid.shape)
             # grid_for_inspection[position_2d] = -3
@@ -201,7 +197,7 @@ class AStarGrid:
 
                     return track
 
-        return
+        return 0
 
 
 def reconstruct_track_flatten(previous, start, end):
