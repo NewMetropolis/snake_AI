@@ -15,6 +15,7 @@ snake_ = np.array([[2, 3], [2, 2], [1, 2], [0, 2]])
 test_grid[snake_[:, 0], snake_[:, 1]] = 0
 end = [3, 3]
 asg = AStarGrid(test_grid, snake_[0], end, snake=snake_)
+# track = asg.compute_shortest()
 track = asg.compute_longest()
 print('End.')
 # path_='C:\\Users\\Marcin\\PycharmProjects\\snake_nn'

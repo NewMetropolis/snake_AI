@@ -55,9 +55,7 @@ class AStarGrid:
         """Check if a move on a grid is valid ."""
         if new_node_id < 0 or new_node_id >= self.n:
             pass
-        elif self.grid[new_node_id] == 0:
-            pass
-        elif self.visited[new_node_id]:
+        elif self.grid[new_node_id] != 1:
             pass
         elif id_change == 1 and new_node_id % self.n_cols == 0:
             pass
@@ -66,7 +64,7 @@ class AStarGrid:
         else:
             return 1
 
-    def compute_shortest(self, snake=None):
+    def compute_shortest(self):
         """Compute the shortest path.
 
         Args:
@@ -79,23 +77,22 @@ class AStarGrid:
         self.precompute_snake_distance()
         actual_distance = np.full([self.n], fill_value=np.iinfo(np.int32).max, dtype=int)
         actual_distance[self.start] = 0
-        indexed_pq = pqdict({self.start: actual_distance[self.start] + self.snake_dist[self.start]}, reverse=True
-                            )
+        indexed_pq = pqdict({self.start: actual_distance[self.start] + self.snake_dist[self.start]})
         nodes_to_free = []
         while indexed_pq:
-            if snake:
-                self.grid[nodes_to_free] = 0
             node_id = indexed_pq.pop()
-            if snake:
-                if actual_distance[node_id] >= len(snake):
-                    nodes_to_free = snake
+            self.grid[node_id] = 2
+            if self.snake is not None:
+                self.grid[nodes_to_free] = 0
+            if self.snake is not None:
+                if actual_distance[node_id] >= len(self.snake):
+                    nodes_to_free = self.snake
                 else:
                     # Check details of the Snake's implementation. It should work that way.
-                    nodes_to_free = snake[-(actual_distance[node_id] + 1):]
+                    nodes_to_free = self.snake[-(actual_distance[node_id] + 1):]
                 self.grid[nodes_to_free] = 1
             # position_2d = np.unravel_index(node_id, grid.shape)
             # grid_for_inspection[position_2d] = -3
-            self.visited[node_id] = True
             for id_change in self.allowed_moves:
                 new_node_id = node_id + id_change
                 valid_move = self.validate_move(node_id, id_change, new_node_id)
@@ -115,23 +112,25 @@ class AStarGrid:
         return
 
     def max_traversable_cells(self, start):
-        """Find articulation points, remove not traversable nodes, get the upper limit of all traversable nodes left."""
+        """Get the upper limit on a number of traversable nodes."""
         bfs = BreadthFirstSearchFlat(self.grid, self.n_cols, start, self.end, self.snake)
         end_reachable, nodes_count = bfs.search_sssp(return_count=True)
-        if self.snake:
+        if self.snake is not None:
             if nodes_count >= len(self.snake):
                 nodes_to_free = self.snake
             else:
                 # Check details of the Snake's implementation. It should work that way.
                 nodes_to_free = self.snake[-(nodes_count + 1):]
+            nodes_to_free = nodes_to_free[self.grid[nodes_to_free] == 0]
             self.grid[nodes_to_free] = 1
         # Find articulation points.
-        articulation_points = find_articulation_points(self.grid, start)
+        articulation_points = find_articulation_points(self.grid, start, self.grid_2d.shape)
         # Prune the grid.
-        not_traversable = largest_biconnected_component(articulation_points, start, self.end, self.n_cols)
-        self.grid[not_traversable] = 0
+        not_traversable = largest_biconnected_component(self.grid, articulation_points, start, self.end, self.n_cols)
+        if start == self.start:
+            self.grid[not_traversable] = 0
         nodes_count = nodes_count - len(not_traversable)
-        if self.snake:
+        if self.snake is not None:
             # noinspection PyUnboundLocalVariable
             self.grid[nodes_to_free] = 0
 
@@ -140,9 +139,13 @@ class AStarGrid:
     def longest_path_heuristics(self, node_id):
         """The longest path heuristics."""
         nodes_to_visit = []
+        reached_end = False
         for id_change in self.allowed_moves:
             new_node_id = node_id + id_change
             # Here we do not account for the last Snake's segment case.
+            if new_node_id == self.end:
+                reached_end = True
+                continue
             valid_move = self.validate_move(node_id, id_change, new_node_id)
             if valid_move:
                 nodes_to_visit.append(new_node_id)
@@ -152,37 +155,48 @@ class AStarGrid:
                 if node_to_close != node_to_expand:
                     self.grid[node_to_close] = 0
             not_traversable, end_reachable, nodes_count = self.max_traversable_cells(node_to_expand)
-            heuristics.append(nodes_count if end_reachable else 0)
+            heuristics.append((nodes_count - 1) if end_reachable else 0)
             # Restore the grid.
             self.grid[nodes_to_visit] = 1
             self.grid[not_traversable] = 1
-
+        if reached_end:
+            nodes_to_visit.append(self.end)
+            heuristics.append(0)
         return nodes_to_visit, heuristics
 
     def compute_longest(self):
         """Compute the longest path."""
-
         if self.start == self.end:
             sys.exit('End and start nodes are the same.')
         actual_distance = np.full([self.n], fill_value=np.iinfo(np.int32).min, dtype=int)
         actual_distance[self.start] = 0
-        h = self.longest_path_heuristics(self.start)
-        indexed_pq = pqdict({self.start: actual_distance[self.start] + h})
+        # Add "chess game-board heuristics".
+        # To be checked.
+        not_traversable, end_reachable, nodes_count = self.max_traversable_cells(self.start)
+        if not end_reachable:
+            sys.exit('No possible path from a start to an end.')
+        indexed_pq = pqdict({self.start: actual_distance[self.start] + nodes_count}, reverse=True)
         nodes_to_free = []
+        head = self.snake[0]
         while indexed_pq:
+            node_id = indexed_pq.pop()
+            if self.grid[node_id] != 1 and node_id != head:
+                continue
+            self.grid[node_id] = 2
+            # Do usuniecia.
+            # self.visited[node_id] = True
             if self.snake is not None:
                 self.grid[nodes_to_free] = 0
-            node_id = indexed_pq.pop()
             if self.snake is not None:
                 if actual_distance[node_id] >= len(self.snake):
                     nodes_to_free = self.snake
                 else:
                     # Check details of the Snake's implementation. It should work that way.
                     nodes_to_free = self.snake[-(actual_distance[node_id] + 1):]
+                nodes_to_free = nodes_to_free[self.grid[nodes_to_free] == 0]
                 self.grid[nodes_to_free] = 1
             # position_2d = np.unravel_index(node_id, grid.shape)
             # grid_for_inspection[position_2d] = -3
-            self.visited[node_id] = True
             # Get the heuristics for all surrounding nodes.
             nodes_to_visit, heuristics = self.longest_path_heuristics(node_id)
             # Mind 1, for a grid situation.
@@ -192,10 +206,10 @@ class AStarGrid:
                     actual_distance[new_node_id] = new_distance
                     indexed_pq[new_node_id] = new_distance + heuristics[counter]
                     self.previous[new_node_id] = node_id
-                if new_node_id == self.end:
-                    track = reconstruct_track_flatten(self.previous, self.start, self.end)
-
-                    return track
+                # if new_node_id == self.end:
+                #     track = reconstruct_track_flatten(self.previous, self.start, self.end)
+                #
+                #     return track
 
         return 0
 
