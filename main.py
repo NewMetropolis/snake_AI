@@ -1,7 +1,7 @@
 # import rbm
 import numpy as np
 from bfs import BreadthFirstSearchFlat
-from graph_stuff import find_articulation_points
+from graph_stuff import find_articulation_points, find_dead_ends
 
 # from graph_stuff import flood_fill, escape_trap
 # from a_star import AStarGrid, mark_snakes_way
@@ -35,7 +35,11 @@ from graph_stuff import find_articulation_points
 test_grid = np.full([3, 5], fill_value=1)
 test_grid[0, [2,4]] = 0
 test_grid[2, [0, 1, 2, 4]] = 0
-articulation_points = find_articulation_points(test_grid.flatten(), 5, 0)
+n_cols = 5
+start = 0
+end = 9
+articulation_points = find_articulation_points(test_grid.flatten(), n_cols, start)
+not_traversable = find_dead_ends(test_grid.flatten(), n_cols, articulation_points, start, end)
 print('End')
 test_grid = np.full([4, 4], fill_value=1)
 # Coordinates should be 2D/consistent with grid.

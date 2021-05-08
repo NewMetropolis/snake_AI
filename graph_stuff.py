@@ -1,5 +1,6 @@
-from bfs import BreadthFirstSearchFlat
 import numpy as np
+from bfs import BreadthFirstSearchFlat
+from grid_stuff import validate_move
 
 
 def find_articulation_points(grid, n_cols, start):
@@ -71,16 +72,14 @@ def find_articulation_points(grid, n_cols, start):
     return set(articulation_points)
 
 
-def largest_biconnected_component(grid, articulation_points, start, end, n_cols):
-    """Finds largest biconnected components/traversable simple paths between start and end."""
+def find_dead_ends(grid, n_cols, articulation_points, start, end, snake=None):
+    """Find nodes that can be traversed on a simple path between start and end."""
     n = grid.size
     allowed_moves = [1, -n_cols, -1, n_cols]
-    articulation_indexes = np.array(np.arange(n))[articulation_points]
     not_traversable = []
-    for idx in articulation_indexes:
+    for idx in articulation_points:
         grid_copy = grid.copy()
         grid_copy[idx] = 0
-
         for idx_change in allowed_moves:
             new_idx = idx + idx_change
             if new_idx < 0 or new_idx >= n:
@@ -91,11 +90,14 @@ def largest_biconnected_component(grid, articulation_points, start, end, n_cols)
                 continue
             elif idx_change == -1 and idx % n_cols == 0:
                 continue
+            if new_idx == end or new_idx == start:
+                continue
             # There should be 'reset object' function or so, probably.
-            bfs = BreadthFirstSearchFlat(grid_copy, n_cols, new_idx, end)
+
+            bfs = BreadthFirstSearchFlat(grid_copy, n_cols, new_idx, end, snake)
             end_reachable, _ = bfs.search_sssp()
             if not end_reachable:
-                bfs = BreadthFirstSearchFlat(grid_copy, n_cols, new_idx, start)
+                bfs = BreadthFirstSearchFlat(grid_copy, n_cols, new_idx, start, snake)
                 start_reachable, track_to_start = bfs.search_sssp()
                 if not start_reachable:
                     not_traversable = not_traversable + list(np.argwhere(bfs.grid == 2).flatten())
