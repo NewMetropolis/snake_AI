@@ -214,21 +214,6 @@ class AStarGrid:
         return 0
 
 
-def reconstruct_track_flatten(previous, start, end):
-    """Reconstruct a track on a flattened grid."""
-    track = []
-    node = end
-    if previous[node] == -1:
-        print('No valid path.')
-        return
-
-    while node != start:
-        track.append(node)
-        node = previous[node]
-    track.reverse()
-
-    return track
-
 
 def mark_snakes_way(grid, track):
     indexes_2d = np.unravel_index(track, grid.shape)

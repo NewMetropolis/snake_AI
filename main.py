@@ -1,14 +1,42 @@
 # import rbm
-from bfs import BreadthFirstSearchFlat
-from graph_stuff import flood_fill, escape_trap
-from a_star import AStarGrid, mark_snakes_way
-from graph_stuff import find_articulation_points
-from grid_stuff import fill_with_largest_rectangles, largest_area_under_histogram
 import numpy as np
-import os
-import pickle
-import snake
+from bfs import BreadthFirstSearchFlat
+from graph_stuff import find_articulation_points
 
+# from graph_stuff import flood_fill, escape_trap
+# from a_star import AStarGrid, mark_snakes_way
+# from grid_stuff import fill_with_largest_rectangles, largest_area_under_histogram
+# import os
+# import pickle
+# import snake
+
+### Things for testing.
+### BFS
+# test_gird = np.full([4, 4], fill_value=1)
+# # test_gird[:3, 2] = 0
+# n_cols = test_gird.shape[1]
+# start = 15  # [3, 3]
+# end = 8  # [2, 0]
+# bfsf = BreadthFirstSearchFlat(test_gird.flatten(), n_cols, start, end)
+# end_reachable, track = bfsf.search_sssp()
+# bfsf = BreadthFirstSearchFlat(test_gird.flatten(), n_cols, start, end)
+# end_reachable, nodes_count = bfsf.search_sssp(return_count=True)
+#
+# test_gird = np.full([4, 4], fill_value=1)
+# snake_ = [15, 14, 10, 6]
+# flat_test_grid = test_gird.flatten()
+# flat_test_grid[snake_] = 0
+# bfsf = BreadthFirstSearchFlat(flat_test_grid, n_cols, start, end, snake_)
+# end_reachable, track = bfsf.search_sssp()
+# bfsf = BreadthFirstSearchFlat(flat_test_grid, n_cols, start, end, snake_)
+# end_reachable, nodes_count = bfsf.search_sssp(return_count=True)
+###
+### Articulation points
+test_grid = np.full([3, 5], fill_value=1)
+test_grid[0, [2,4]] = 0
+test_grid[2, [0, 1, 2, 4]] = 0
+articulation_points = find_articulation_points(test_grid.flatten(), 5, 0)
+print('End')
 test_grid = np.full([4, 4], fill_value=1)
 # Coordinates should be 2D/consistent with grid.
 snake_ = np.array([[2, 3], [2, 2], [1, 2], [0, 2]])

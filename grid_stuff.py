@@ -1,6 +1,35 @@
 import numpy as np
 
 
+def reconstruct_track_flatten(previous, start, end):
+    """Reconstruct a track on a flattened grid."""
+    track = []
+    node = end
+    if previous[node] == -1:
+        print('No valid path.')
+    else:
+        while node != start:
+            track.append(node)
+            node = previous[node]
+        track.reverse()
+
+    return track
+
+
+def validate_move(self, node_id, id_change, new_node_id):
+    """Check if a move on a grid is valid ."""
+    if new_node_id < 0 or new_node_id >= self.n:
+        pass
+    elif self.grid[new_node_id] != 1:
+        pass
+    elif id_change == 1 and new_node_id % self.n_cols == 0:
+        pass
+    elif id_change == -1 and node_id % self.n_cols == 0:
+        pass
+    else:
+        return 1
+
+
 def cell_traversable(grid, idx_arr):
     """Check if a cell/node is traversable i.e. has at least two edges."""
     directions = [np.array([0, 1], dtype=int), np.array([-1, 0], dtype=int), np.array([0, -1], dtype=int),
