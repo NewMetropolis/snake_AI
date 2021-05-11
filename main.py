@@ -1,6 +1,7 @@
 # import rbm
 import numpy as np
 from a_star import AStarGrid
+from snake import SnakeGame
 from bfs import BreadthFirstSearchFlat
 from graph_stuff import ArticulationPoints
 
@@ -43,39 +44,55 @@ from graph_stuff import ArticulationPoints
 # ap.find(count_nodes=True)
 # ap.find_dead_ends()
 ### A* longest path.
-test_grid = np.full([5, 5], fill_value=1)
-start = [4, 0]
-end = [4, 4]
-test_grid[0, [2, 4]] = 0
-test_grid[1, [2, 4]] = 0
-test_grid[3, 3] = 0
-test_grid[4, 3] = 0
-as_ = AStarGrid(test_grid, start, end)
-as_.compute_longest()
+# test_grid = np.full([5, 5], fill_value=1)
+# start = [4, 0]
+# end = [4, 4]
+# test_grid[0, [2, 4]] = 0
+# test_grid[1, [2, 4]] = 0
+# test_grid[3, 3] = 0
+# test_grid[4, 3] = 0
+# as_ = AStarGrid(test_grid, start, end)
+# as_.compute_longest()
+
+# test_grid = np.full([4, 4], fill_value=1)
+# start = [3, 2]
+# end = [3, 1]
+# as_ = AStarGrid(test_grid, start, end)
+# as_.compute_longest()
+
+# test_grid = np.full([5, 5], fill_value=1)
+# start = [3, 0]
+# end = [1, 4]
+# as_ = AStarGrid(test_grid, start, end)
+# as_.compute_longest()
+
+snake_game = SnakeGame(display_width=200, display_height=240, snake_speed=40, snake_block=20, ai_mode='bfs')
+
+grid, snake_ = snake_game.astar_game_loop(1)
 print('End')
 
 
-
-test_grid = np.full([4, 4], fill_value=1)
-# Coordinates should be 2D/consistent with grid.
-snake_ = np.array([[2, 3], [2, 2], [1, 2], [0, 2]])
-test_grid[snake_[:, 0], snake_[:, 1]] = 0
-end = [3, 3]
-asg = AStarGrid(test_grid, snake_[0], end, snake=snake_)
-# track = asg.compute_shortest()
-track = asg.compute_longest()
-print('End.')
+#
+# test_grid = np.full([4, 4], fill_value=1)
+# # Coordinates should be 2D/consistent with grid.
+# snake_ = np.array([[2, 3], [2, 2], [1, 2], [0, 2]])
+# test_grid[snake_[:, 0], snake_[:, 1]] = 0
+# end = [3, 3]
+# asg = AStarGrid(test_grid, snake_[0], end, snake=snake_)
+# # track = asg.compute_shortest()
+# track = asg.compute_longest()
+# print('End.')
 # path_='C:\\Users\\Marcin\\PycharmProjects\\snake_nn'
 #
 # test_grid, _, _, snake_ = pickle.load(open(os.path.join(path_, 'problematic_snake.pkl'), 'rb'))
 
 # colored_grid, n_graphs, reachable_segments = flood_fill(test_grid, snake_[0], snake_)
 # escape_trap(colored_grid, snake_, reachable_segments)
-snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=20000, snake_block=20, ai_mode='bfs')
-
-grid, snake_ = snake_game.bfs_game_loop(5)
-colored_grid, n_graphs = flood_fill(grid, (0,0))
-print('End')
+# snake_game = snake.SnakeGame(display_width=400, display_height=440, snake_speed=20000, snake_block=20, ai_mode='bfs')
+#
+# grid, snake_ = snake_game.bfs_game_loop(5)
+# colored_grid, n_graphs = flood_fill(grid, (0,0))
+# print('End')
 # snake_game.bfs_game_loop(1)
 # Running snake game.
 
@@ -158,7 +175,6 @@ def add_noise(sequence, noise, repeat):
 # print(rbm_sgd.test(snake_coding))
 # with open('DRBM_weights_biases.pkl', 'wb') as pkl_file:
 #     pickle.dump((rbm_sgd.weights, rbm_sgd.weights_c_h, rbm_sgd.bias_v, rbm_sgd.bias_h, rbm_sgd.bias_c), pkl_file)
-print('HI')
 #
 #
 # snake_ai_game = snake.SnakeGame(ai_mode=True, snake_speed=200)

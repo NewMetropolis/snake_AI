@@ -15,6 +15,7 @@ class AStarGrid:
         n_cols (int): Number of columns.
         start (int): Start node index on the flat grid.
         end (int): End node index on the flat grid.
+        track (list of int): Sequence of nodes between start and end.
     """
 
     def __init__(self, grid_2d, start_2d, end_2d, snake=None):
@@ -39,6 +40,7 @@ class AStarGrid:
         self.visited = np.full([n], fill_value=False)
         self.previous = np.full([n], fill_value=-1, dtype=int)
         self.allowed_moves = [1, -self.n_cols, -1, self.n_cols]
+        self.track = []
         if snake is not None:
             snake = np.array(snake)
             self.snake = np.ravel_multi_index((snake[:, 0], snake[:, 1]), grid_2d.shape)
@@ -100,9 +102,9 @@ class AStarGrid:
                     indexed_pq[new_node_id] = new_distance + self.snake_dist[new_node_id]
                     self.previous[new_node_id] = node_id
                 if new_node_id == self.end:
-                    track = reconstruct_track_flatten(self.previous, self.start, self.end)
+                    self.track = reconstruct_track_flatten(self.previous, self.start, self.end)
 
-                    return track
+                    return
 
         return
 
@@ -176,6 +178,10 @@ class AStarGrid:
         self.grid_for_tracking[ap.not_traversable] = 0
         heuristics = ap.nodes_count - len(ap.not_traversable)
         indexed_pq = pqdict({self.start: actual_distance[self.start] + heuristics}, reverse=True)
+        # Let's add some bias.
+        self.precompute_snake_distance()
+        bias = 1 - 1 / self.snake_dist
+        print('End')
         # nodes_to_free = []
         # head = self.snake[0]
         while indexed_pq:
@@ -184,6 +190,11 @@ class AStarGrid:
                 # and node_id != head:
                 continue
             self.grid_for_tracking[node_idx] = 2
+            for key in indexed_pq.keys():
+                indexed_pq[key] -= 1
+            if node_idx == self.end:
+                self.track = reconstruct_track_flatten(self.previous, self.start, node_idx)
+                return
             # if self.snake is not None:
             #     self.grid[nodes_to_free] = 0
             # if self.snake is not None:
@@ -208,21 +219,20 @@ class AStarGrid:
                 if new_distance > actual_distance[new_node_idx]:
                     actual_distance[new_node_idx] = new_distance
                     self.previous[new_node_idx] = node_idx
-                    track = reconstruct_track_flatten(self.previous, self.start, new_node_idx)
-                    selected_path_grid = self.grid.copy()
-
-                    selected_path_grid[track[:-1]] = 0
-                    ap = ArticulationPoints(selected_path_grid, self.n_cols, new_node_idx, self.end)
+                    # track = reconstruct_track_flatten(self.previous, self.start, new_node_idx)
+                    # # if new_node_idx == self.end:
+                    # #     self.track = track
+                    # #
+                    # #     return
+                    # selected_path_grid = self.grid.copy()
+                    # selected_path_grid[track[:-1]] = 0
+                    ap = ArticulationPoints(self.grid_for_tracking, self.n_cols, new_node_idx, self.end)
                     ap.find(count_nodes=True)
                     if not ap.end_reachable:
                         continue
                     ap.find_dead_ends()
                     heuristics = ap.nodes_count - len(ap.not_traversable)
-                    indexed_pq[new_node_idx] = new_distance + heuristics
-                    if new_node_idx == self.end:
-                        track = reconstruct_track_flatten(self.previous, self.start, self.end)
-
-                        return track
+                    indexed_pq[new_node_idx] = new_distance + heuristics + bias[new_node_idx]
 
         return 0
 

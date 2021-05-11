@@ -4,6 +4,7 @@ import math
 import numpy as np
 import pygame
 import random
+from a_star import AStarGrid
 """Implementation of a classic '00s Snake game."""
 
 
@@ -383,6 +384,44 @@ class SnakeGame:
         pygame.quit()
 
         return self.grid, self.snake
+
+    def astar_game_loop(self, iterations):
+        for i in range(iterations):
+            self.game_over = False
+            self.set_game_board()
+            self.reset_snake()
+            self.place_food()
+            self.update_snake_position()
+            while not self.game_over:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.game_over = True
+                self.update_grid()
+                if self.snake_length == 1:
+                    snake_ = self.snake
+                else:
+                    snake_ = self.snake[:-1]
+                as_ = AStarGrid(np.logical_not(self.grid).astype(int), self.snake_head, self.food)
+                as_.compute_longest()
+                if len(as_.track) == 0:
+                    print("That' all Folks! We are going down.\n Final score: {}".format(self.score))
+                    self.game_over = True
+                    continue
+                n_moves = len(as_.track)
+                unraveled_index = np.unravel_index(as_.track, self.grid.shape)
+                track = list(zip(unraveled_index[0], unraveled_index[1]))
+                for ith_move in range(n_moves):
+                    self.move = track[ith_move] - self.snake[0]
+                    self.update_snake_position()
+                    self.check_if_crashed()
+                    self.draw_snake_food()
+                    self.snake_eats_food()
+                    self.clock.tick(self.snake_speed)
+            self.scores.append(self.score)
+        pygame.quit()
+
+        return self.grid, self.snake
+
 
     def ultimate_domination_loop(self):
         """Run Snake in a 'dumb yet unbeatable mode'."""

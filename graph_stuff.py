@@ -4,7 +4,19 @@ from grid_stuff import validate_move
 
 
 class ArticulationPoints:
-    """Mark articulation points and 'dead ends' on a grid graph using Depth First Search based method."""
+    """Mark articulation points and 'dead ends' on a grid graph using Depth First Search based method.
+
+       Attributes:
+            grid (1D ndarray): Flat grid to search on.
+            n_cols (int): Number of columns in the 2D representation.
+            start (int): Node to start at.
+            articulation_points (list of int): Indexes of nodes that are articulation points.
+            end (int, optional): Index of an end node. If provided function will
+            end_reachable (bool, optional): If an end node index is provided 'find' method will check whether it is
+            reachable.
+            nodes_count (int, optional): Number of all reachable nodes. See 'count_nodes' in the 'find'
+            method.
+    """
 
     def __init__(self, grid, n_cols, start, end=None):
         """Initialize ArticulationPoints object.
@@ -15,16 +27,6 @@ class ArticulationPoints:
             start (int): Node to start at.
             end (int, optional): Index of an end node. If provided function will
 
-        Attributes:
-            grid (1D ndarray): Flat grid to search on.
-            n_cols (int): Number of columns in the 2D representation.
-            start (int): Node to start at.
-            articulation_points (list of int): Indexes of nodes that are articulation points.
-            end (int, optional): Index of an end node. If provided function will
-            end_reachable (bool, optional): If an end node index is provided 'find' method will check whether it is
-            reachable.
-            nodes_count (int, optional): Number of all reachable nodes. See 'count_nodes' in the 'find'
-            method.
         """
         # Doczytać gdzie powinien być atrybut traversable nodes.
         self.original_grid = grid
