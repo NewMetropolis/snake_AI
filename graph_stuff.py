@@ -58,13 +58,14 @@ class ArticulationPoints:
         current_id = 0
         while node_stack:
             flat_index = node_stack.pop()
-            if self.grid[flat_index] == 1:
-                self.grid[flat_index] = 2
-                node_id[flat_index] = current_id
-                lowpoint[flat_index] = current_id
-                # lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
-                # ids_for_inspection[np.unravel_index(flat_index, grid.shape)] = node_id[flat_index]
-                current_id += 1
+            if not self.grid[flat_index] == 1 and flat_index != self.start:
+                continue
+            self.grid[flat_index] = 2
+            node_id[flat_index] = current_id
+            lowpoint[flat_index] = current_id
+            # lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
+            # ids_for_inspection[np.unravel_index(flat_index, grid.shape)] = node_id[flat_index]
+            current_id += 1
             for index_change in self.allowed_moves:
                 new_flat_index = flat_index + index_change
                 if new_flat_index < 0 or new_flat_index >= self.n:
@@ -77,13 +78,14 @@ class ArticulationPoints:
                     continue
                 elif new_flat_index == parent_arr[flat_index]:
                     continue
-                if self.grid[new_flat_index] == 2:
-                    lowpoint[flat_index] = min(lowpoint[flat_index], node_id[new_flat_index])
-                    # lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
-                else:
+                elif self.grid[new_flat_index] == 1:
                     parent_arr[new_flat_index] = flat_index
                     node_stack.append(new_flat_index)
                     backtrack_list.append(new_flat_index)
+                elif self.grid[new_flat_index] == 2:
+                    lowpoint[flat_index] = min(lowpoint[flat_index], node_id[new_flat_index])
+                    # lowpoint_for_inspection[np.unravel_index(flat_index, grid.shape)] = lowpoint[flat_index]
+
         unique, counts = np.unique(parent_arr, return_counts=True)
         child_count = dict(zip(unique, counts))
         child_count[self.start] -= 1

@@ -186,10 +186,10 @@ class AStarGrid:
         # head = self.snake[0]
         while indexed_pq:
             node_idx = indexed_pq.pop()
-            if self.grid_for_tracking[node_idx] == 2:
+            if self.grid_for_tracking[node_idx] == 3:
                 # and node_id != head:
                 continue
-            self.grid_for_tracking[node_idx] = 2
+            self.grid_for_tracking[node_idx] = 3
             for key in indexed_pq.keys():
                 indexed_pq[key] -= 1
             if node_idx == self.end:

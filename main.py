@@ -53,7 +53,7 @@ from graph_stuff import ArticulationPoints
 # test_grid[4, 3] = 0
 # as_ = AStarGrid(test_grid, start, end)
 # as_.compute_longest()
-
+#
 # test_grid = np.full([4, 4], fill_value=1)
 # start = [3, 2]
 # end = [3, 1]
@@ -66,7 +66,7 @@ from graph_stuff import ArticulationPoints
 # as_ = AStarGrid(test_grid, start, end)
 # as_.compute_longest()
 
-snake_game = SnakeGame(display_width=200, display_height=240, snake_speed=40, snake_block=20, ai_mode='bfs')
+snake_game = SnakeGame(display_width=400, display_height=440, snake_speed=4000, snake_block=20, ai_mode='bfs')
 
 grid, snake_ = snake_game.astar_game_loop(1)
 print('End')
