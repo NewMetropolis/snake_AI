@@ -66,9 +66,10 @@ from graph_stuff import ArticulationPoints
 # as_ = AStarGrid(test_grid, start, end)
 # as_.compute_longest()
 
-snake_game = SnakeGame(display_width=400, display_height=440, snake_speed=4000, snake_block=20, ai_mode='bfs')
-
-grid, snake_ = snake_game.astar_game_loop(1)
+snake_game = SnakeGame(display_width=400, display_height=440, snake_speed=100, snake_block=20, theme='mark_track',
+                       mode='A_star')
+snake_game.play_game()
+# grid, snake_ = snake_game.astar_game_loop(1)
 print('End')
 
 
